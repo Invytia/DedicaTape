@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crea tu Mixtape</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Un poco de CSS personalizado para los engranajes */
+        .spin { animation: spin 2s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        body {
+            /* Aquí usamos tu textura de fondo */
+            background-image: url('assets/textura.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-5xl w-full bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        <!-- Panel Izquierdo: Formulario -->
+        <div class="w-full md:w-1/2 p-8 bg-neutral-50/90 border-r border-neutral-200">
+            <h1 class="text-3xl font-bold text-neutral-800 mb-2">Crea tu Mixtape</h1>
+            <p class="text-neutral-500 mb-8">Personaliza tu casete y añade tu mensaje.</p>
+            
+            <!-- Zona de Éxito (Oculta por defecto) -->
+            <div id="successZone" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                <h3 class="text-green-800 font-bold mb-2">¡Tu Mixtape está listo! 📼</h3>
+                <p class="text-sm text-green-600 mb-4">Copia este enlace y envíalo:</p>
+                <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded p-2 text-center text-sm mb-4 outline-none bg-white">
+                <button onclick="copyLink()" class="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">Copiar Enlace</button>
+                <button onclick="resetForm()" class="block w-full mt-4 text-sm text-neutral-500 underline">Crear otro</button>
+            </div>
+
+            <!-- Formulario -->
+            <div id="formZone" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Título del Casete</label>
+                    <input type="text" id="titulo" onkeyup="updatePreview()" placeholder="Ej. Para mi persona favorita" class="w-full border border-neutral-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Mensaje Especial</label>
+                    <textarea id="mensaje" placeholder="Escribe una dedicatoria..." rows="3" class="w-full border border-neutral-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Color del Casete</label>
+                    <div class="flex gap-3">
+                        <button onclick="changeColor('bg-yellow-400')" class="color-btn w-10 h-10 rounded-full bg-yellow-400 border-2 border-black scale-110 shadow-md transition-all"></button>
+                        <button onclick="changeColor('bg-red-400')" class="color-btn w-10 h-10 rounded-full bg-red-400 border-2 border-transparent opacity-70 transition-all"></button>
+                        <button onclick="changeColor('bg-blue-400')" class="color-btn w-10 h-10 rounded-full bg-blue-400 border-2 border-transparent opacity-70 transition-all"></button>
+                        <button onclick="changeColor('bg-neutral-800')" class="color-btn w-10 h-10 rounded-full bg-neutral-800 border-2 border-transparent opacity-70 transition-all"></button>
+                    </div>
+                </div>
+
+                <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-bold py-3 rounded-lg mt-6 hover:bg-neutral-800 transition-colors">
+                    Generar Mixtape
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Previsualización -->
+        <div class="w-full md:w-1/2 p-8 flex flex-col items-center justify-center relative bg-transparent">
+            <div class="z-10 text-center w-full max-w-[300px]">
+                <h2 class="text-sm font-bold tracking-widest text-neutral-500 uppercase mb-6 bg-white/80 inline-block px-3 py-1 rounded-full">Vista Previa</h2>
+                
+                <!-- Casete Visual -->
+                <div id="cassettePreview" class="w-full aspect-[3/2] bg-yellow-400 rounded-xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center relative overflow-hidden transition-colors duration-300">
+                    <!-- Etiqueta Blanca -->
+                    <div class="absolute top-4 w-3/4 min-h-[48px] bg-white border-2 border-black rounded flex items-center justify-center p-2 text-center z-20">
+                        <span id="labelPreview" class="font-mono text-black font-bold text-xs sm:text-sm leading-tight line-clamp-2">LADO A</span>
+                    </div>
+                    
+                    <!-- Engranaje Izquierdo -->
+                    <div class="w-12 h-12 rounded-full border-4 border-black bg-white mx-4 flex items-center justify-center relative z-20">
+                        <!-- Aquí puedes poner assets/engranaje.png más adelante -->
+                        <div class="w-3 h-3 bg-black rounded-full spin"></div>
+                    </div>
+                    
+                    <!-- Engranaje Derecho -->
+                    <div class="w-12 h-12 rounded-full border-4 border-black bg-white mx-4 flex items-center justify-center relative z-20">
+                        <div class="w-3 h-3 bg-black rounded-full spin"></div>
+                    </div>
+                    
+                    <!-- Ventana de cinta (Fondo oscuro entre engranajes) -->
+                    <div class="absolute w-32 h-10 bg-black/80 top-1/2 -translate-y-1/2 rounded-full z-10 flex items-center justify-center">
+                        <div class="w-24 h-1 bg-neutral-600 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LÓGICA DE JAVASCRIPT -->
+    <script>
+        let currentColor = 'bg-yellow-400';
+        // TU WEBHOOK REAL
+        const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
+
+        // Actualizar el texto del casete
+        function updatePreview() {
+            const titulo = document.getElementById('titulo').value;
+            document.getElementById('labelPreview').innerText = titulo || 'LADO A';
+        }
+
+        // Cambiar el color del casete
+        function changeColor(newColor) {
+            // Actualizar el div del casete
+            const cassette = document.getElementById('cassettePreview');
+            cassette.classList.remove(currentColor);
+            cassette.classList.add(newColor);
+            currentColor = newColor;
+
+            // Actualizar botones (estado visual)
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                if(btn.classList.contains(newColor)) {
+                    btn.classList.remove('border-transparent', 'opacity-70');
+                    btn.classList.add('border-black', 'scale-110', 'shadow-md');
+                } else {
+                    btn.classList.add('border-transparent', 'opacity-70');
+                    btn.classList.remove('border-black', 'scale-110', 'shadow-md');
+                }
+            });
+        }
+
+        // Enviar a Google Sheets
+        async function generarMixtape() {
+            const titulo = document.getElementById('titulo').value;
+            const mensaje = document.getElementById('mensaje').value;
+            const btn = document.getElementById('submitBtn');
+
+            if (!titulo) return alert("Por favor, ponle un título a tu mixtape");
+
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+            btn.classList.add('bg-neutral-400');
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        titulo: titulo,
+                        mensaje: mensaje,
+                        color: currentColor,
+                        canciones: []
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Generar el link con el ID que devuelve Google
+                    const currentUrl = window.location.href.split('?')[0]; // URL limpia sin /m/
+                    const finalLink = `${currentUrl}?m=${data.id}`;
+                    
+                    document.getElementById('linkOutput').value = finalLink;
+                    document.getElementById('formZone').classList.add('hidden');
+                    document.getElementById('successZone').classList.remove('hidden');
+                } else {
+                    alert("Error en el servidor de Google");
+                }
+            } catch (error) {
+                alert("Error de conexión. Intenta de nuevo.");
+            }
+            
+            btn.innerText = "Generar Mixtape";
+            btn.disabled = false;
+            btn.classList.remove('bg-neutral-400');
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("linkOutput");
+            copyText.select();
+            document.execCommand("copy");
+            alert("¡Enlace copiado!");
+        }
+
+        function resetForm() {
+            document.getElementById('titulo').value = '';
+            document.getElementById('mensaje').value = '';
+            updatePreview();
+            document.getElementById('successZone').classList.add('hidden');
+            document.getElementById('formZone').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
