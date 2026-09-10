@@ -5,92 +5,202 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea tu Mixtape</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importamos fuentes de Google para la personalización de la etiqueta -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    
     <style>
-        /* Un poco de CSS personalizado para los engranajes */
-        .spin { animation: spin 2s linear infinite; }
+        /* Animación de los engranajes */
+        .spin { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
+        /* Fuentes personalizadas */
+        .font-handwriting { font-family: 'Permanent Marker', cursive; }
+        .font-typewriter { font-family: 'Courier Prime', monospace; }
+        .font-standard { font-family: 'Inter', sans-serif; }
+
+        /* Estilos de la etiqueta (Sticker) */
+        .label-solid { background-color: white; }
+        .label-striped { 
+            background: repeating-linear-gradient(0deg, white, white 19px, #e5e7eb 20px); 
+        }
+        .label-grid {
+            background-color: white;
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+
+        /* Detalles realistas del casete (Tornillos) */
+        .screw {
+            width: 12px; height: 12px;
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            border-radius: 50%;
+            border: 1px solid #4b5563;
+            position: absolute;
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.5), inset -1px -1px 2px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .screw::after {
+            content: ''; width: 8px; height: 1px; background: #374151; transform: rotate(45deg);
+        }
+
         body {
-            /* Aquí usamos tu textura de fondo */
+            /* Textura de fondo */
             background-image: url('assets/textura.jpg');
+            background-color: #f3f4f6; /* Color de respaldo si no carga la imagen */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
+        
+        /* Scrollbar invisible para la lista de canciones */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-5xl w-full bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+    <!-- Contenedor Principal con Glassmorphism (Translúcido) -->
+    <div class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[700px]">
         
-        <!-- Panel Izquierdo: Formulario -->
-        <div class="w-full md:w-1/2 p-8 bg-neutral-50/90 border-r border-neutral-200">
-            <h1 class="text-3xl font-bold text-neutral-800 mb-2">Crea tu Mixtape</h1>
-            <p class="text-neutral-500 mb-8">Personaliza tu casete y añade tu mensaje.</p>
+        <!-- Panel Izquierdo: Configurador -->
+        <div class="w-full lg:w-1/2 p-6 md:p-10 bg-white/60 border-r border-white/40 overflow-y-auto max-h-[90vh] no-scrollbar">
+            <h1 class="text-4xl font-extrabold text-neutral-800 mb-2 tracking-tight">Tu Mixtape</h1>
+            <p class="text-neutral-600 mb-8 font-medium">Diseña el casete y añade hasta 4 canciones.</p>
             
-            <!-- Zona de Éxito (Oculta por defecto) -->
-            <div id="successZone" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                <h3 class="text-green-800 font-bold mb-2">¡Tu Mixtape está listo! 📼</h3>
-                <p class="text-sm text-green-600 mb-4">Copia este enlace y envíalo:</p>
-                <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded p-2 text-center text-sm mb-4 outline-none bg-white">
-                <button onclick="copyLink()" class="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">Copiar Enlace</button>
-                <button onclick="resetForm()" class="block w-full mt-4 text-sm text-neutral-500 underline">Crear otro</button>
+            <!-- Zona de Éxito -->
+            <div id="successZone" class="hidden bg-green-50/90 backdrop-blur border border-green-200 rounded-xl p-6 text-center shadow-lg">
+                <h3 class="text-green-800 font-bold mb-2 text-lg">¡Cinta grabada con éxito! 📼</h3>
+                <p class="text-sm text-green-700 mb-4">Envía este enlace a esa persona especial:</p>
+                <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded-lg p-3 text-center text-sm mb-4 outline-none bg-white font-medium shadow-inner">
+                <button onclick="copyLink()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md">Copiar Enlace</button>
+                <button onclick="resetForm()" class="block w-full mt-4 text-sm text-neutral-500 hover:text-neutral-800 underline transition">Crear otra cinta</button>
             </div>
 
             <!-- Formulario -->
-            <div id="formZone" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Título del Casete</label>
-                    <input type="text" id="titulo" onkeyup="updatePreview()" placeholder="Ej. Para mi persona favorita" class="w-full border border-neutral-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white">
-                </div>
+            <div id="formZone" class="space-y-7">
                 
-                <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Mensaje Especial</label>
-                    <textarea id="mensaje" placeholder="Escribe una dedicatoria..." rows="3" class="w-full border border-neutral-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Color del Casete</label>
-                    <div class="flex gap-3">
-                        <button onclick="changeColor('bg-yellow-400')" class="color-btn w-10 h-10 rounded-full bg-yellow-400 border-2 border-black scale-110 shadow-md transition-all"></button>
-                        <button onclick="changeColor('bg-red-400')" class="color-btn w-10 h-10 rounded-full bg-red-400 border-2 border-transparent opacity-70 transition-all"></button>
-                        <button onclick="changeColor('bg-blue-400')" class="color-btn w-10 h-10 rounded-full bg-blue-400 border-2 border-transparent opacity-70 transition-all"></button>
-                        <button onclick="changeColor('bg-neutral-800')" class="color-btn w-10 h-10 rounded-full bg-neutral-800 border-2 border-transparent opacity-70 transition-all"></button>
+                <!-- 1. Textos -->
+                <div class="space-y-4 bg-white/50 p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <h3 class="font-bold text-neutral-800 border-b border-neutral-200 pb-2">1. Textos y Dedicatoria</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Título de la cinta</label>
+                        <input type="text" id="titulo" onkeyup="updatePreview()" placeholder="Ej. Mix para el viaje" class="w-full border border-neutral-300/80 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white/80 transition" maxlength="30">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota oculta</label>
+                        <textarea id="mensaje" placeholder="Escribe un mensaje para cuando abran el casete..." rows="2" class="w-full border border-neutral-300/80 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white/80 transition resize-none"></textarea>
                     </div>
                 </div>
 
-                <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-bold py-3 rounded-lg mt-6 hover:bg-neutral-800 transition-colors">
-                    Generar Mixtape
+                <!-- 2. Canciones -->
+                <div class="space-y-4 bg-white/50 p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <div class="flex justify-between items-end border-b border-neutral-200 pb-2">
+                        <h3 class="font-bold text-neutral-800">2. Canciones (Máx 4)</h3>
+                        <span id="songCount" class="text-xs font-bold bg-neutral-200 px-2 py-1 rounded-full">0/4</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="songInput" placeholder="Nombre de la canción y artista..." class="w-full border border-neutral-300/80 rounded-lg p-3 outline-none focus:ring-2 focus:ring-black bg-white/80 transition">
+                        <button onclick="addSong()" class="bg-black text-white px-5 rounded-lg font-bold hover:bg-neutral-800 transition">Add</button>
+                    </div>
+                    <ul id="songList" class="space-y-2 mt-2">
+                        <!-- Las canciones se agregarán aquí -->
+                    </ul>
+                </div>
+
+                <!-- 3. Diseño -->
+                <div class="space-y-4 bg-white/50 p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <h3 class="font-bold text-neutral-800 border-b border-neutral-200 pb-2">3. Personalización Visual</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Color del Plástico</label>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="changeColor('bg-[#Facc15]')" class="color-btn w-10 h-10 rounded-full bg-[#Facc15] border-2 border-black scale-110 shadow-md transition-all"></button>
+                            <button onclick="changeColor('bg-[#F87171]')" class="color-btn w-10 h-10 rounded-full bg-[#F87171] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
+                            <button onclick="changeColor('bg-[#60A5FA]')" class="color-btn w-10 h-10 rounded-full bg-[#60A5FA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
+                            <button onclick="changeColor('bg-[#262626]')" class="color-btn w-10 h-10 rounded-full bg-[#262626] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
+                            <button onclick="changeColor('bg-[#A78BFA]')" class="color-btn w-10 h-10 rounded-full bg-[#A78BFA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
+                            <button onclick="changeColor('bg-[#F0FDF4]')" class="color-btn w-10 h-10 rounded-full bg-[#F0FDF4] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button> <!-- Blanco -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Estilo Etiqueta</label>
+                            <select id="labelSelect" onchange="updateStyle()" class="w-full p-2 border border-neutral-300 rounded-lg bg-white/80 outline-none">
+                                <option value="label-solid">Liso</option>
+                                <option value="label-striped">Rayado Vintage</option>
+                                <option value="label-grid">Cuadrícula Retro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Tipografía</label>
+                            <select id="fontSelect" onchange="updateStyle()" class="w-full p-2 border border-neutral-300 rounded-lg bg-white/80 outline-none">
+                                <option value="font-handwriting">Marcador (Manual)</option>
+                                <option value="font-typewriter">Máquina de escribir</option>
+                                <option value="font-standard">Imprenta</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
+                    Grabar Mixtape
                 </button>
             </div>
         </div>
 
-        <!-- Panel Derecho: Previsualización -->
-        <div class="w-full md:w-1/2 p-8 flex flex-col items-center justify-center relative bg-transparent">
-            <div class="z-10 text-center w-full max-w-[300px]">
-                <h2 class="text-sm font-bold tracking-widest text-neutral-500 uppercase mb-6 bg-white/80 inline-block px-3 py-1 rounded-full">Vista Previa</h2>
+        <!-- Panel Derecho: Previsualización Realista -->
+        <div class="w-full lg:w-1/2 p-8 flex flex-col items-center justify-center relative min-h-[400px]">
+            <div class="z-10 text-center w-full max-w-[400px]">
                 
-                <!-- Casete Visual -->
-                <div id="cassettePreview" class="w-full aspect-[3/2] bg-yellow-400 rounded-xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center relative overflow-hidden transition-colors duration-300">
-                    <!-- Etiqueta Blanca -->
-                    <div class="absolute top-4 w-3/4 min-h-[48px] bg-white border-2 border-black rounded flex items-center justify-center p-2 text-center z-20">
-                        <span id="labelPreview" class="font-mono text-black font-bold text-xs sm:text-sm leading-tight line-clamp-2">LADO A</span>
+                <!-- CASETE REALISTA -->
+                <div id="cassetteBody" class="w-full aspect-[16/10] bg-[#Facc15] rounded-lg border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.4)] flex items-center justify-center relative overflow-hidden transition-colors duration-500">
+                    
+                    <!-- Tornillos -->
+                    <div class="screw top-2 left-2"></div>
+                    <div class="screw top-2 right-2"></div>
+                    <div class="screw bottom-2 left-2"></div>
+                    <div class="screw bottom-2 right-2"></div>
+                    
+                    <!-- Relieve exterior (Borde interior falso) -->
+                    <div class="absolute inset-2 border-2 border-black/10 rounded-md pointer-events-none"></div>
+
+                    <!-- Etiqueta (Sticker) -->
+                    <div id="cassetteLabel" class="absolute top-4 w-11/12 h-3/5 label-solid border border-neutral-400 rounded-sm shadow-sm flex flex-col items-center justify-start p-2 z-20">
+                        <div class="w-full border-b-2 border-red-500 pb-1 mb-1 flex justify-between items-center px-1">
+                            <span class="text-[10px] font-bold text-neutral-500">60 MIN</span>
+                            <span id="labelPreview" class="font-handwriting text-black text-lg sm:text-xl leading-tight text-center flex-grow truncate px-2">Mixtape</span>
+                            <span class="text-[10px] font-bold text-neutral-500">LADO A</span>
+                        </div>
                     </div>
                     
-                    <!-- Engranaje Izquierdo -->
-                    <div class="w-12 h-12 rounded-full border-4 border-black bg-white mx-4 flex items-center justify-center relative z-20">
-                        <!-- Aquí puedes poner assets/engranaje.png más adelante -->
-                        <div class="w-3 h-3 bg-black rounded-full spin"></div>
+                    <!-- Sección Central (Relieve donde va la cinta) -->
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-20 bg-black/10 rounded-lg border border-black/20 z-30 flex items-center justify-between px-6 shadow-inner">
+                        
+                        <!-- Engranaje Izquierdo -->
+                        <div class="w-12 h-12 rounded-full border-[5px] border-neutral-800 bg-[#f8f9fa] flex items-center justify-center relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+                            <div class="absolute w-full h-full bg-[url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z\" fill=\"%23333\"/></svg>')] spin opacity-80"></div>
+                            <div class="w-3 h-3 bg-neutral-800 rounded-full z-10"></div>
+                        </div>
+                        
+                        <!-- Ventana de cinta (Centro) -->
+                        <div class="w-32 h-10 bg-neutral-900 rounded-md flex items-center justify-center shadow-inner relative overflow-hidden border border-neutral-700">
+                            <!-- Carrete de cinta simulado -->
+                            <div class="absolute left-[-20px] w-20 h-20 bg-neutral-800 rounded-full"></div>
+                            <div class="absolute right-[-20px] w-16 h-16 bg-neutral-800 rounded-full"></div>
+                            <div class="w-24 h-[2px] bg-neutral-500/50 rounded z-10"></div>
+                        </div>
+                        
+                        <!-- Engranaje Derecho -->
+                        <div class="w-12 h-12 rounded-full border-[5px] border-neutral-800 bg-[#f8f9fa] flex items-center justify-center relative shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+                            <div class="absolute w-full h-full bg-[url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z\" fill=\"%23333\"/></svg>')] spin opacity-80"></div>
+                            <div class="w-3 h-3 bg-neutral-800 rounded-full z-10"></div>
+                        </div>
                     </div>
-                    
-                    <!-- Engranaje Derecho -->
-                    <div class="w-12 h-12 rounded-full border-4 border-black bg-white mx-4 flex items-center justify-center relative z-20">
-                        <div class="w-3 h-3 bg-black rounded-full spin"></div>
-                    </div>
-                    
-                    <!-- Ventana de cinta (Fondo oscuro entre engranajes) -->
-                    <div class="absolute w-32 h-10 bg-black/80 top-1/2 -translate-y-1/2 rounded-full z-10 flex items-center justify-center">
-                        <div class="w-24 h-1 bg-neutral-600 rounded"></div>
+
+                    <!-- Base inferior (trapezoide falso) -->
+                    <div class="absolute bottom-0 w-3/4 h-10 border-t-2 border-black/20 flex justify-around items-end pb-1 opacity-60">
+                        <div class="w-4 h-4 bg-black/20 rounded-full"></div>
+                        <div class="w-4 h-4 bg-black/20 rounded-full"></div>
                     </div>
                 </div>
             </div>
@@ -99,80 +209,147 @@
 
     <!-- LÓGICA DE JAVASCRIPT -->
     <script>
-        let currentColor = 'bg-yellow-400';
+        let currentColor = 'bg-[#Facc15]';
+        let songs = [];
+        const MAX_SONGS = 4;
+        
         // TU WEBHOOK REAL
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
-        // Actualizar el texto del casete
+        // 1. Textos y Estilos
         function updatePreview() {
             const titulo = document.getElementById('titulo').value;
-            document.getElementById('labelPreview').innerText = titulo || 'LADO A';
+            document.getElementById('labelPreview').innerText = titulo || 'Mixtape';
         }
 
-        // Cambiar el color del casete
+        function updateStyle() {
+            const font = document.getElementById('fontSelect').value;
+            const label = document.getElementById('labelSelect').value;
+            
+            const labelEl = document.getElementById('cassetteLabel');
+            const textEl = document.getElementById('labelPreview');
+
+            // Limpiar clases
+            labelEl.className = `absolute top-4 w-11/12 h-3/5 border border-neutral-400 rounded-sm shadow-sm flex flex-col items-center justify-start p-2 z-20 ${label}`;
+            textEl.className = `text-black text-lg sm:text-xl leading-tight text-center flex-grow truncate px-2 ${font}`;
+        }
+
         function changeColor(newColor) {
-            // Actualizar el div del casete
-            const cassette = document.getElementById('cassettePreview');
+            const cassette = document.getElementById('cassetteBody');
             cassette.classList.remove(currentColor);
             cassette.classList.add(newColor);
             currentColor = newColor;
 
-            // Actualizar botones (estado visual)
             document.querySelectorAll('.color-btn').forEach(btn => {
                 if(btn.classList.contains(newColor)) {
-                    btn.classList.remove('border-transparent', 'opacity-70');
+                    btn.classList.remove('border-transparent', 'opacity-60');
                     btn.classList.add('border-black', 'scale-110', 'shadow-md');
                 } else {
-                    btn.classList.add('border-transparent', 'opacity-70');
+                    btn.classList.add('border-transparent', 'opacity-60');
                     btn.classList.remove('border-black', 'scale-110', 'shadow-md');
                 }
             });
         }
 
-        // Enviar a Google Sheets
+        // 2. Lógica de Canciones
+        function addSong() {
+            const input = document.getElementById('songInput');
+            const songName = input.value.trim();
+
+            if (!songName) return;
+            if (songs.length >= MAX_SONGS) {
+                alert("Solo puedes agregar un máximo de 4 canciones por casete.");
+                return;
+            }
+
+            songs.push(songName);
+            input.value = '';
+            renderSongs();
+        }
+
+        function removeSong(index) {
+            songs.splice(index, 1);
+            renderSongs();
+        }
+
+        function renderSongs() {
+            const list = document.getElementById('songList');
+            const count = document.getElementById('songCount');
+            
+            list.innerHTML = '';
+            count.innerText = `${songs.length}/${MAX_SONGS}`;
+            
+            if(songs.length === MAX_SONGS) {
+                count.classList.add('bg-green-200', 'text-green-800');
+            } else {
+                count.classList.remove('bg-green-200', 'text-green-800');
+            }
+
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-white border border-neutral-200 p-2 rounded-lg text-sm shadow-sm animate-fade-in";
+                li.innerHTML = `
+                    <span class="truncate flex-grow pr-2 font-medium text-neutral-700">🎵 ${song}</span>
+                    <button onclick="removeSong(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition">✕</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // Detectar "Enter" en el input de canciones
+        document.getElementById('songInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') addSong();
+        });
+
+        // 3. Envío al Servidor
         async function generarMixtape() {
             const titulo = document.getElementById('titulo').value;
             const mensaje = document.getElementById('mensaje').value;
             const btn = document.getElementById('submitBtn');
+            const font = document.getElementById('fontSelect').value;
+            const label = document.getElementById('labelSelect').value;
 
-            if (!titulo) return alert("Por favor, ponle un título a tu mixtape");
+            if (!titulo) return alert("Por favor, ponle un título a tu mixtape.");
+            if (songs.length === 0) return alert("Agrega al menos una canción.");
 
-            btn.innerText = "Guardando...";
+            btn.innerText = "Grabando cinta...";
             btn.disabled = true;
-            btn.classList.add('bg-neutral-400');
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
+                const payload = {
+                    titulo: titulo,
+                    mensaje: mensaje,
+                    color: currentColor,
+                    canciones: songs,
+                    estilos: { font: font, label: label }
+                };
+
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        titulo: titulo,
-                        mensaje: mensaje,
-                        color: currentColor,
-                        canciones: []
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Generar el link con el ID que devuelve Google
-                    const currentUrl = window.location.href.split('?')[0]; // URL limpia sin /m/
+                    const currentUrl = window.location.href.split('?')[0]; 
                     const finalLink = `${currentUrl}?m=${data.id}`;
                     
                     document.getElementById('linkOutput').value = finalLink;
                     document.getElementById('formZone').classList.add('hidden');
                     document.getElementById('successZone').classList.remove('hidden');
                 } else {
-                    alert("Error en el servidor de Google");
+                    alert("Error al guardar. Intenta de nuevo.");
                 }
             } catch (error) {
-                alert("Error de conexión. Intenta de nuevo.");
+                alert("Error de conexión con Google Sheets.");
             }
             
-            btn.innerText = "Generar Mixtape";
+            btn.innerText = "Grabar Mixtape";
             btn.disabled = false;
-            btn.classList.remove('bg-neutral-400');
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
         }
 
         function copyLink() {
@@ -185,6 +362,8 @@
         function resetForm() {
             document.getElementById('titulo').value = '';
             document.getElementById('mensaje').value = '';
+            songs = [];
+            renderSongs();
             updatePreview();
             document.getElementById('successZone').classList.add('hidden');
             document.getElementById('formZone').classList.remove('hidden');
