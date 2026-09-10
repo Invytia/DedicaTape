@@ -13,7 +13,7 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            /* La imagen de fondo se movió a un div abajo para compatibilidad en móviles */
+            background-color: #e5e7eb; /* Color de respaldo */
         }
 
         .spin { animation: spin 4s linear infinite; }
@@ -56,8 +56,8 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
 
-    <!-- CAPA DE FONDO FIJA (Solución definitiva para móviles) -->
-    <div class="fixed inset-0 w-full h-full bg-[#e5e7eb] -z-10 bg-cover bg-center" style="background-image: url('assets/textura.jpg');"></div>
+    <!-- CAPA DE FONDO FIJA (Solución definitiva para celulares) -->
+    <img src="assets/textura.jpg" class="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none opacity-90" alt="Fondo" onerror="this.style.display='none'">
 
     <!-- Contenedor Principal -->
     <div class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative">
@@ -160,7 +160,7 @@
                     </div>
                     <div class="flex gap-2">
                         <input type="url" id="songInput" placeholder="Pega el link de YouTube aquí..." class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition">
-                        <button onclick="addSong()" class="bg-black text-white px-5 rounded-xl font-bold hover:bg-neutral-800 transition">Add</button>
+                        <button id="addBtn" onclick="addSong()" class="bg-black text-white px-5 rounded-xl font-bold hover:bg-neutral-800 transition min-w-[70px]">Add</button>
                     </div>
                     <ul id="songList" class="space-y-2 mt-2">
                     </ul>
@@ -177,7 +177,6 @@
                             <button onclick="changeColor('bg-[#60A5FA]')" class="color-btn w-10 h-10 rounded-full bg-[#60A5FA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
                             <button onclick="changeColor('bg-[#262626]')" class="color-btn w-10 h-10 rounded-full bg-[#262626] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
                             <button onclick="changeColor('bg-[#A78BFA]')" class="color-btn w-10 h-10 rounded-full bg-[#A78BFA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
-                            <!-- Botón Blanco -->
                             <button onclick="changeColor('bg-[#FFFFFF]')" class="color-btn w-10 h-10 rounded-full bg-[#FFFFFF] border-2 border-transparent opacity-60 transition-all hover:opacity-100 shadow-sm"></button>
                         </div>
                     </div>
@@ -216,7 +215,7 @@
     <!-- LÓGICA DE JAVASCRIPT -->
     <script>
         let currentColor = 'bg-[#Facc15]';
-        let songs = [];
+        let songs = []; // Ahora guardará objetos { id: '...', title: '...' }
         const MAX_SONGS = 4;
         
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
@@ -260,7 +259,7 @@
             return (match && match[7].length == 11) ? match[7] : false;
         }
 
-        function addSong() {
+        async function addSong() {
             const input = document.getElementById('songInput');
             const url = input.value.trim();
 
@@ -276,8 +275,31 @@
                 return;
             }
 
-            songs.push(videoId);
+            // Cambiar el botón a estado de carga
+            const btn = document.getElementById('addBtn');
+            const originalText = btn.innerText;
+            btn.innerText = '⏳';
+            btn.disabled = true;
+            btn.classList.add('opacity-70');
+
+            let videoTitle = `Pista ${songs.length + 1}`; // Nombre de respaldo
+
+            try {
+                // Obtener el título del video de YouTube de forma pública
+                const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+                const data = await response.json();
+                if (data && data.title) {
+                    videoTitle = data.title;
+                }
+            } catch (error) {
+                console.log("No se pudo obtener el título, se usará el nombre por defecto.");
+            }
+
+            songs.push({ id: videoId, title: videoTitle });
             input.value = '';
+            btn.innerText = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-70');
             renderSongs();
         }
 
@@ -299,11 +321,11 @@
                 count.classList.remove('bg-green-200', 'text-green-800');
             }
 
-            songs.forEach((songId, index) => {
+            songs.forEach((song, index) => {
                 const li = document.createElement('li');
                 li.className = "flex justify-between items-center bg-white/80 border border-neutral-200 p-3 rounded-xl text-sm shadow-sm animate-fade-in font-medium";
                 li.innerHTML = `
-                    <span class="truncate flex-grow pr-2 text-neutral-700">▶ Pista ${index + 1} lista</span>
+                    <span class="truncate flex-grow pr-2 text-neutral-700" title="${song.title}">▶ ${song.title}</span>
                     <button onclick="removeSong(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition font-bold">✕</button>
                 `;
                 list.appendChild(li);
@@ -333,7 +355,7 @@
                     titulo: titulo,
                     mensaje: mensaje,
                     color: currentColor,
-                    canciones: songs,
+                    canciones: songs, // Se enviarán con id y title
                     estilos: { font: font, label: label }
                 };
 
@@ -351,8 +373,8 @@
                     
                     document.getElementById('linkOutput').value = finalLink;
                     
-                    const mainVideo = songs[0];
-                    const playlist = songs.slice(1).join(',');
+                    const mainVideo = songs[0].id;
+                    const playlist = songs.slice(1).map(s => s.id).join(',');
                     const iframeSrc = `https://www.youtube.com/embed/${mainVideo}?autoplay=0${playlist ? '&playlist=' + playlist : ''}`;
                     document.getElementById('ytIframe').src = iframeSrc;
 
