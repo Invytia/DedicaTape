@@ -13,11 +13,7 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-image: url('assets/textura.jpg');
-            background-color: #e5e7eb; 
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            /* La imagen de fondo se movió a un div abajo para compatibilidad en móviles */
         }
 
         .spin { animation: spin 4s linear infinite; }
@@ -58,13 +54,16 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800">
+<body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
 
-    <!-- Contenedor Principal: Modificado para permitir el efecto "Sticky" -->
+    <!-- CAPA DE FONDO FIJA (Solución definitiva para móviles) -->
+    <div class="fixed inset-0 w-full h-full bg-[#e5e7eb] -z-10 bg-cover bg-center" style="background-image: url('assets/textura.jpg');"></div>
+
+    <!-- Contenedor Principal -->
     <div class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative">
         
-        <!-- PANEL DERECHO: CASETE (Ahora es el primero en el código para que flote al hacer scroll en móvil) -->
-        <div class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center sticky top-0 z-50 bg-white/70 backdrop-blur-2xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all">
+        <!-- PANEL DERECHO: CASETE (Sticky en móvil) -->
+        <div class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center sticky top-0 z-50 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all">
             <div class="z-10 text-center w-full max-w-[450px]">
                 
                 <!-- CASETE REALISTA -->
@@ -178,7 +177,7 @@
                             <button onclick="changeColor('bg-[#60A5FA]')" class="color-btn w-10 h-10 rounded-full bg-[#60A5FA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
                             <button onclick="changeColor('bg-[#262626]')" class="color-btn w-10 h-10 rounded-full bg-[#262626] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
                             <button onclick="changeColor('bg-[#A78BFA]')" class="color-btn w-10 h-10 rounded-full bg-[#A78BFA] border-2 border-transparent opacity-60 transition-all hover:opacity-100"></button>
-                            <!-- Nuevo Botón Blanco -->
+                            <!-- Botón Blanco -->
                             <button onclick="changeColor('bg-[#FFFFFF]')" class="color-btn w-10 h-10 rounded-full bg-[#FFFFFF] border-2 border-transparent opacity-60 transition-all hover:opacity-100 shadow-sm"></button>
                         </div>
                     </div>
