@@ -53,7 +53,6 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* Estilos corregidos para el Flip 3D (A prueba de celulares) */
         .perspective-1000 { 
             perspective: 1000px; 
             -webkit-perspective: 1000px;
@@ -64,24 +63,27 @@
         }
         .backface-hidden { 
             backface-visibility: hidden; 
-            -webkit-backface-visibility: hidden; /* CRUCIAL para Safari/iPhone */
+            -webkit-backface-visibility: hidden;
         }
         .rotate-y-180 { 
             transform: rotateY(180deg); 
             -webkit-transform: rotateY(180deg);
         }
         
-        /* Lista del Lado B (Rayas horizontales limpias) */
         .tracklist-bg {
-            background-color: #ffffff; /* Fondo blanco sólido para que no transparente */
-            background-image: repeating-linear-gradient(to bottom, transparent, transparent 23px, #93c5fd 23px, #93c5fd 24px); /* Líneas azules */
+            background-color: #ffffff;
+            background-image: repeating-linear-gradient(to bottom, transparent, transparent 23px, #93c5fd 23px, #93c5fd 24px);
             background-position: top 0 left 0;
+        }
+        
+        /* Efecto disco del reproductor */
+        .vinyl-texture {
+            background: repeating-radial-gradient(circle at center, #333 0, #333 1px, #222 1px, #222 3px);
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
 
-    <!-- CAPA DE FONDO FIJA -->
     <img src="assets/textura.jpg" class="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none opacity-90" alt="Fondo" onerror="this.style.display='none'">
 
     <div class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative">
@@ -90,7 +92,6 @@
         <div class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center sticky top-0 z-50 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000">
             <div class="z-10 text-center w-full max-w-[450px]">
                 
-                <!-- Botón para voltear -->
                 <button onclick="flipCassette()" class="mb-4 text-xs font-bold bg-neutral-800/80 text-white px-4 py-2 rounded-full hover:bg-black transition-colors backdrop-blur flex items-center justify-center mx-auto gap-2 shadow-md">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-10.87l5.25 5.3"/></svg>
                     <span id="flipText">Ver Lado B (Canciones)</span>
@@ -100,7 +101,6 @@
                 <div id="cassetteWrapper" class="w-full aspect-[16/10] relative transition-transform duration-700 transform-style-3d">
                     
                     <!-- LADO A (FRENTE) -->
-                    <!-- Aplicamos transformZ para evitar que Safari colapse las capas -->
                     <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_25px_rgba(0,0,0,0.5),_10px_15px_25px_rgba(0,0,0,0.4)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
                         <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/40 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
                         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none z-40"></div>
@@ -136,18 +136,15 @@
                         </div>
                     </div>
 
-                    <!-- LADO B (REVERSO CON CANCIONES) -->
-                    <!-- Aplicamos transform para girarlo y mantenerlo oculto de espaldas -->
+                    <!-- LADO B (REVERSO) -->
                     <div id="cassetteBack" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_25px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden rotate-y-180" style="transform: rotateY(180deg); -webkit-transform: rotateY(180deg);">
                         <div class="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/30 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
                         <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
                         
-                        <!-- Base superior (porque está al revés) -->
                         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-10 sm:h-12 bg-black/10 border-b-2 border-black/15 rounded-b-lg flex justify-center items-start pt-2 gap-4 sm:gap-6 opacity-90 z-10">
                             <div class="w-3 h-3 bg-black/40 rounded-full"></div><div class="w-4 h-4 bg-black/40 rounded-full"></div><div class="w-3 h-3 bg-black/40 rounded-full"></div><div class="w-4 h-4 bg-black/40 rounded-full"></div><div class="w-3 h-3 bg-black/40 rounded-full"></div>
                         </div>
 
-                        <!-- Etiqueta Lado B (Hoja de raya 100% opaca) -->
                         <div class="absolute bottom-5 w-[88%] h-[65%] bg-white border border-neutral-400 rounded-sm shadow-md p-3 z-20 flex flex-col">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">TRACKLIST</span>
@@ -155,9 +152,7 @@
                             </div>
                             <div class="w-full h-[2px] bg-neutral-800 mb-1"></div>
                             
-                            <!-- Lista de canciones simulando escritura a mano sobre líneas -->
                             <div class="flex-grow tracklist-bg relative font-handwriting text-neutral-800 overflow-hidden text-left pt-[2px]" id="tracklistPreview">
-                                <!-- Se llena vía JS -->
                                 <div class="text-neutral-400 italic text-center mt-6 font-standard text-xs">Agrega canciones...</div>
                             </div>
                         </div>
@@ -178,8 +173,34 @@
                 <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded-lg p-3 text-center text-sm mb-4 outline-none bg-white font-semibold shadow-inner text-neutral-600">
                 <button onclick="copyLink()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md">Copiar Enlace</button>
                 
-                <div id="playerContainer" class="mt-6 rounded-xl overflow-hidden shadow-lg border border-neutral-200 bg-black">
-                    <iframe id="ytIframe" width="100%" height="220" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <!-- NUEVO REPRODUCTOR DE AUDIO PERSONALIZADO -->
+                <div id="playerContainer" class="mt-6 rounded-xl overflow-hidden shadow-lg border border-neutral-700 bg-[#1a1a1a] p-4 text-white">
+                    <div class="flex items-center justify-between gap-4">
+                        <!-- Disco animado -->
+                        <div id="spinDisk" class="w-12 h-12 rounded-full flex items-center justify-center shadow-inner border border-neutral-600 relative overflow-hidden flex-shrink-0 vinyl-texture transition-transform duration-500">
+                            <div class="absolute w-3 h-3 bg-red-500 rounded-full z-10 border-[2px] border-white/20"></div>
+                        </div>
+                        
+                        <div class="flex-grow text-left overflow-hidden">
+                            <p class="text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5">REPRODUCTOR DE AUDIO</p>
+                            <p id="currentTrackLabel" class="text-white font-medium truncate text-sm">Lista para reproducir</p>
+                        </div>
+                        
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button id="playPauseBtn" onclick="togglePlay()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-neutral-200 transition shadow-md">
+                                <svg id="playIcon" class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+                            <button onclick="nextTrack()" class="w-10 h-10 bg-neutral-800 text-white rounded-full flex items-center justify-center hover:bg-neutral-700 transition border border-neutral-700 shadow-md">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Iframe de YouTube Oculto -->
+                    <div class="absolute w-[1px] h-[1px] opacity-0 overflow-hidden pointer-events-none -left-[9999px]">
+                        <div id="ytPlayerHidden"></div>
+                    </div>
                 </div>
 
                 <button onclick="resetForm()" class="block w-full mt-5 text-sm text-neutral-500 hover:text-neutral-800 underline transition">Crear otra cinta</button>
@@ -264,9 +285,17 @@
         const MAX_SONGS = 4;
         let isFlipped = false;
         
+        let ytPlayer; // Variable para el reproductor de YouTube
+        let isPlaying = false;
+
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
-        // Lógica para voltear el casete (ahora compatible con todos los navegadores)
+        // Cargar API de YouTube de forma asíncrona
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
         function flipCassette() {
             const wrapper = document.getElementById('cassetteWrapper');
             const btnText = document.getElementById('flipText');
@@ -296,7 +325,6 @@
             labelEl.className = `absolute top-5 w-[88%] h-[58%] border border-neutral-400/80 rounded shadow-sm flex flex-col items-center justify-start p-2 sm:p-3 z-20 transition-all duration-300 ${label}`;
             textEl.className = `text-neutral-900 text-xl sm:text-2xl leading-tight text-center flex-grow truncate px-2 transition-all ${font}`;
             
-            // Sincronizar fuente con el tracklist del reverso
             document.getElementById('tracklistPreview').className = `flex-grow tracklist-bg relative overflow-hidden text-left pt-[2px] ${font}`;
         }
 
@@ -370,7 +398,6 @@
             btn.classList.remove('opacity-70');
             renderSongs();
             
-            // Voltea el casete automáticamente al agregar una canción
             if(!isFlipped) flipCassette();
         }
 
@@ -385,7 +412,7 @@
             const tracklistPreview = document.getElementById('tracklistPreview');
             
             list.innerHTML = '';
-            tracklistPreview.innerHTML = ''; // Limpiar Lado B
+            tracklistPreview.innerHTML = ''; 
             
             count.innerText = `${songs.length}/${MAX_SONGS}`;
             if(songs.length === MAX_SONGS) {
@@ -399,7 +426,6 @@
             }
 
             songs.forEach((song, index) => {
-                // UI de la lista en el formulario
                 const li = document.createElement('li');
                 li.className = "flex justify-between items-center bg-white/80 border border-neutral-200 p-3 rounded-xl text-sm shadow-sm animate-fade-in font-medium";
                 li.innerHTML = `
@@ -408,7 +434,6 @@
                 `;
                 list.appendChild(li);
 
-                // UI del Lado B (Casete) - Ajustado para alinear perfecto con las rayas
                 const track = document.createElement('div');
                 track.className = "truncate w-full h-[24px] leading-[24px] text-blue-900 px-1 sm:text-lg";
                 track.innerText = `${index + 1}. ${song.title}`;
@@ -419,6 +444,50 @@
         document.getElementById('songInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') addSong();
         });
+
+        // Controles del Reproductor Personalizado
+        function togglePlay() {
+            if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
+            if (isPlaying) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+
+        function nextTrack() {
+            if (ytPlayer && typeof ytPlayer.nextVideo === 'function') {
+                ytPlayer.nextVideo();
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const spinDisk = document.getElementById('spinDisk');
+            const currentTrackLabel = document.getElementById('currentTrackLabel');
+            
+            if (event.data == YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                spinDisk.classList.add('spin');
+                
+                // Actualizar título de la canción si es posible
+                try {
+                    let index = ytPlayer.getPlaylistIndex();
+                    if(songs[index]) {
+                        currentTrackLabel.innerText = songs[index].title;
+                    }
+                } catch(e) {}
+                
+            } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                isPlaying = false;
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                spinDisk.classList.remove('spin');
+            }
+        }
 
         async function generarMixtape() {
             const titulo = document.getElementById('titulo').value;
@@ -457,15 +526,35 @@
                     
                     document.getElementById('linkOutput').value = finalLink;
                     
+                    // Inicializar Reproductor de YouTube Oculto
                     const mainVideo = songs[0].id;
                     const playlist = songs.slice(1).map(s => s.id).join(',');
-                    const iframeSrc = `https://www.youtube.com/embed/${mainVideo}?autoplay=0${playlist ? '&playlist=' + playlist : ''}`;
-                    document.getElementById('ytIframe').src = iframeSrc;
+                    
+                    document.getElementById('currentTrackLabel').innerText = "Presiona Play para escuchar";
+
+                    if (ytPlayer) {
+                        ytPlayer.destroy();
+                    }
+
+                    ytPlayer = new YT.Player('ytPlayerHidden', {
+                        height: '10',
+                        width: '10',
+                        videoId: mainVideo,
+                        playerVars: {
+                            'playsinline': 1,
+                            'playlist': playlist,
+                            'controls': 0,
+                            'disablekb': 1
+                        },
+                        events: {
+                            'onStateChange': onPlayerStateChange
+                        }
+                    });
 
                     document.getElementById('formZone').classList.add('hidden');
                     document.getElementById('successZone').classList.remove('hidden');
                     
-                    if(isFlipped) flipCassette(); // Regresar al frente
+                    if(isFlipped) flipCassette(); 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     alert("Error al guardar. Intenta de nuevo.");
@@ -492,7 +581,9 @@
             songs = [];
             renderSongs();
             updatePreview();
-            document.getElementById('ytIframe').src = "";
+            
+            if (ytPlayer) ytPlayer.destroy();
+            
             document.getElementById('successZone').classList.add('hidden');
             document.getElementById('formZone').classList.remove('hidden');
             if(isFlipped) flipCassette();
