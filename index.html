@@ -76,7 +76,6 @@
             background-position: top 0 left 0;
         }
         
-        /* Efecto disco del reproductor */
         .vinyl-texture {
             background: repeating-radial-gradient(circle at center, #333 0, #333 1px, #222 1px, #222 3px);
         }
@@ -174,8 +173,11 @@
                 <button onclick="copyLink()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md">Copiar Enlace</button>
                 
                 <!-- NUEVO REPRODUCTOR DE AUDIO PERSONALIZADO -->
-                <div id="playerContainer" class="mt-6 rounded-xl overflow-hidden shadow-lg border border-neutral-700 bg-[#1a1a1a] p-4 text-white">
-                    <div class="flex items-center justify-between gap-4">
+                <!-- Se agregó 'relative' para poder ocultar el iframe debajo de la interfaz -->
+                <div id="playerContainer" class="mt-6 rounded-xl overflow-hidden shadow-lg border border-neutral-700 bg-[#1a1a1a] p-4 text-white relative">
+                    
+                    <!-- Interfaz del reproductor (zIndex mayor para tapar el video) -->
+                    <div class="flex items-center justify-between gap-4 relative z-10">
                         <!-- Disco animado -->
                         <div id="spinDisk" class="w-12 h-12 rounded-full flex items-center justify-center shadow-inner border border-neutral-600 relative overflow-hidden flex-shrink-0 vinyl-texture transition-transform duration-500">
                             <div class="absolute w-3 h-3 bg-red-500 rounded-full z-10 border-[2px] border-white/20"></div>
@@ -183,11 +185,11 @@
                         
                         <div class="flex-grow text-left overflow-hidden">
                             <p class="text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5">REPRODUCTOR DE AUDIO</p>
-                            <p id="currentTrackLabel" class="text-white font-medium truncate text-sm">Lista para reproducir</p>
+                            <p id="currentTrackLabel" class="text-white font-medium truncate text-sm">Cargando cinta...</p>
                         </div>
                         
                         <div class="flex gap-2 flex-shrink-0">
-                            <button id="playPauseBtn" onclick="togglePlay()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-neutral-200 transition shadow-md">
+                            <button id="playPauseBtn" onclick="togglePlay()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-neutral-200 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg id="playIcon" class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                 <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                             </button>
@@ -197,8 +199,9 @@
                         </div>
                     </div>
                     
-                    <!-- Iframe de YouTube Oculto -->
-                    <div class="absolute w-[1px] h-[1px] opacity-0 overflow-hidden pointer-events-none -left-[9999px]">
+                    <!-- Iframe de YouTube Oculto estratégicamente para evitar bloqueos -->
+                    <!-- Tamaño completo pero invisible (opacity-0) y sin eventos (pointer-events-none) -->
+                    <div id="ytWrapper" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none z-0 overflow-hidden">
                         <div id="ytPlayerHidden"></div>
                     </div>
                 </div>
@@ -285,12 +288,12 @@
         const MAX_SONGS = 4;
         let isFlipped = false;
         
-        let ytPlayer; // Variable para el reproductor de YouTube
+        let ytPlayer; 
         let isPlaying = false;
 
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
-        // Cargar API de YouTube de forma asíncrona
+        // Cargar API de YouTube
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -445,7 +448,6 @@
             if (e.key === 'Enter') addSong();
         });
 
-        // Controles del Reproductor Personalizado
         function togglePlay() {
             if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
             if (isPlaying) {
@@ -473,7 +475,6 @@
                 pauseIcon.classList.remove('hidden');
                 spinDisk.classList.add('spin');
                 
-                // Actualizar título de la canción si es posible
                 try {
                     let index = ytPlayer.getPlaylistIndex();
                     if(songs[index]) {
@@ -526,28 +527,42 @@
                     
                     document.getElementById('linkOutput').value = finalLink;
                     
-                    // Inicializar Reproductor de YouTube Oculto
-                    const mainVideo = songs[0].id;
-                    const playlist = songs.slice(1).map(s => s.id).join(',');
-                    
-                    document.getElementById('currentTrackLabel').innerText = "Presiona Play para escuchar";
+                    document.getElementById('currentTrackLabel').innerText = "Cargando audio...";
+                    document.getElementById('playPauseBtn').disabled = true;
 
+                    // Reiniciar el div si ya existía para evitar bugs
                     if (ytPlayer) {
                         ytPlayer.destroy();
+                        document.getElementById('ytWrapper').innerHTML = '<div id="ytPlayerHidden"></div>';
                     }
 
+                    const mainVideo = songs[0].id;
+                    const playlist = songs.slice(1).map(s => s.id).join(',');
+
                     ytPlayer = new YT.Player('ytPlayerHidden', {
-                        height: '10',
-                        width: '10',
+                        height: '250',
+                        width: '100%',
                         videoId: mainVideo,
                         playerVars: {
                             'playsinline': 1,
                             'playlist': playlist,
                             'controls': 0,
-                            'disablekb': 1
+                            'disablekb': 1,
+                            'rel': 0,
+                            'iv_load_policy': 3
                         },
                         events: {
-                            'onStateChange': onPlayerStateChange
+                            'onReady': function() {
+                                document.getElementById('currentTrackLabel').innerText = "▶ Listo. Presiona Play";
+                                document.getElementById('playPauseBtn').disabled = false;
+                            },
+                            'onStateChange': onPlayerStateChange,
+                            'onError': function(event) {
+                                console.log("Video bloqueado por derechos, saltando pista...");
+                                if(ytPlayer && typeof ytPlayer.nextVideo === 'function') {
+                                    ytPlayer.nextVideo();
+                                }
+                            }
                         }
                     });
 
