@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea tu Mixtape</title>
+
+    <!-- Open Graph / preview social. og:image es estático porque generar una miniatura
+         distinta por cada mixtape requiere un servicio de renderizado server-side
+         (ver nota en el chat). Las etiquetas se actualizan por JS al abrir un mixtape. -->
+    <meta id="ogTitle" property="og:title" content="Te hice un mixtape 📼">
+    <meta id="ogDesc" property="og:description" content="Alguien armó una cinta especial para ti. Dale play.">
+    <meta id="ogImage" property="og:image" content="https://placehold.co/1200x630/facc15/1a1a1a?text=Mixtape+%F0%9F%93%BC">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,6 +82,23 @@
             text-shadow: 1px 1px 1px rgba(255,255,255,0.3), -1px -1px 1px rgba(0,0,0,0.2);
             font-weight: 800;
         }
+
+        /* --- Washi tape (5 variantes) --- */
+        .tape-1, .tape-2, .tape-3, .tape-4, .tape-5 {
+            width: 70px; height: 26px; opacity: 0.88; border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .tape-1 { background: repeating-linear-gradient(45deg, #fbcfe8, #fbcfe8 8px, #f9a8d4 8px, #f9a8d4 16px); }
+        .tape-2 { background-color: #6ee7b7; background-image: radial-gradient(circle, #a7f3d0 2.5px, transparent 3px); background-size: 12px 12px; }
+        .tape-3 { background-color: #fde68a; background-image: repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(0,0,0,0.08) 5px, rgba(0,0,0,0.08) 6px), repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(0,0,0,0.08) 5px, rgba(0,0,0,0.08) 6px); }
+        .tape-4 { background: linear-gradient(120deg, #fca5a5, #fdba74, #fde68a); }
+        .tape-5 { background: repeating-linear-gradient(45deg, #d6c8ae, #d6c8ae 4px, #c2ad83 4px, #c2ad83 8px); }
+
+        .palette-btn { width: 44px; height: 24px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
+
+        .decoration-item { touch-action: none; }
+
+        .mobile-tab-btn.active-tab { background-color: black; color: white; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
@@ -83,80 +110,118 @@
         <p class="font-bold text-lg text-neutral-800">Leyendo casete...</p>
     </div>
 
-    <div id="mainContainer" class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative transition-all duration-500 opacity-0">
+    <!-- ONBOARDING: elige tu mood -->
+    <div id="onboardingScreen" class="fixed inset-0 bg-neutral-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-6 transition-opacity duration-500">
+        <div class="max-w-lg w-full text-center">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">¿Qué vibra tiene tu mixtape?</h2>
+            <p class="text-neutral-300 mb-8">Elige un mood y armamos el casete a tu estilo. Puedes cambiarlo todo después.</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                <button onclick="applyMood('nostalgico')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">🌇</div><div class="font-bold text-sm">Nostálgico</div>
+                </button>
+                <button onclick="applyMood('amor')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">💌</div><div class="font-bold text-sm">Amor</div>
+                </button>
+                <button onclick="applyMood('fiesta')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">🎉</div><div class="font-bold text-sm">Fiesta</div>
+                </button>
+                <button onclick="applyMood('chill')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">🌙</div><div class="font-bold text-sm">Chill</div>
+                </button>
+                <button onclick="applyMood('aventura')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">🌲</div><div class="font-bold text-sm">Aventura</div>
+                </button>
+                <button onclick="applyMood('sorpresa')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
+                    <div class="text-3xl mb-1">🎲</div><div class="font-bold text-sm">Sorpréndeme</div>
+                </button>
+            </div>
+            <button onclick="closeOnboarding()" class="text-sm text-neutral-400 hover:text-white underline transition">Saltar, ya sé lo que quiero</button>
+        </div>
+    </div>
+
+    <div id="mainContainer" class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative transition-all duration-500 opacity-0 pb-24 lg:pb-0">
         
         <!-- PANEL DERECHO: CASETE -->
-        <div id="cassettePanel" class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center sticky top-0 z-50 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000">
-            <div class="z-10 text-center w-full max-w-[450px]">
-                
-                <button onclick="flipCassette()" class="mb-4 text-xs font-bold bg-neutral-800/80 text-white px-4 py-2 rounded-full hover:bg-black transition-colors backdrop-blur flex items-center justify-center mx-auto gap-2 shadow-md">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-10.87l5.25 5.3"/></svg>
-                    <span id="flipText">Ver Lado B (Canciones)</span>
-                </button>
+        <div id="cassettePanel" class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center lg:sticky lg:top-0 z-30 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000">
+            <div class="relative w-full max-w-[450px] flex flex-col items-center">
 
-                <div id="cassetteWrapper" class="w-full aspect-[16/10] relative transition-transform duration-700 transform-style-3d">
-                    <!-- LADO A -->
-                    <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
-                        <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">A</div>
-                        <div class="absolute top-2 right-6 text-[8px] plastic-engrave tracking-widest z-10">STEREO</div>
-                        <div class="absolute bottom-16 left-3 text-[7px] plastic-engrave tracking-widest z-10">TYPE I</div>
-                        <div class="absolute bottom-16 right-3 text-[7px] plastic-engrave tracking-widest z-10">NR [ ]</div>
+                <!-- Carcasa / sleeve con la foto (detrás del casete, se asoma en los bordes) -->
+                <div id="caseSleeve" class="hidden absolute top-8 w-[92%] aspect-[16/10] rounded-xl bg-cover bg-center shadow-xl border-4 border-white z-0" style="transform: rotate(-4deg) translateY(14px);"></div>
 
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/40 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
-                        <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
-                        <div class="absolute inset-2 border-2 border-black/15 rounded-lg pointer-events-none z-10"></div>
+                <div class="z-10 text-center w-full">
+                    <button onclick="flipCassette()" class="mb-4 text-xs font-bold bg-neutral-800/80 text-white px-4 py-2 rounded-full hover:bg-black transition-colors backdrop-blur flex items-center justify-center mx-auto gap-2 shadow-md">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-10.87l5.25 5.3"/></svg>
+                        <span id="flipText">Ver Lado B (Canciones)</span>
+                    </button>
 
-                        <div id="cassetteLabel" class="absolute top-6 w-[88%] h-[53%] label-solid border border-neutral-400/80 rounded shadow-sm flex flex-col items-center justify-start p-2 sm:p-3 z-20 transition-all duration-300">
-                            <div class="w-full border-b-2 border-red-500 pb-1 mb-1 flex justify-between items-center px-1">
-                                <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">60 MIN</span>
-                                <span id="labelPreview" class="font-handwriting text-neutral-900 text-xl sm:text-2xl leading-tight text-center flex-grow truncate px-2 transition-all">Mixtape</span>
-                                <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">LADO A</span>
+                    <div id="cassetteWrapper" class="w-full aspect-[16/10] relative transition-transform duration-700 transform-style-3d">
+                        <!-- LADO A -->
+                        <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
+                            <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">A</div>
+                            <div class="absolute top-2 right-6 text-[8px] plastic-engrave tracking-widest z-10">STEREO</div>
+                            <div class="absolute bottom-16 left-3 text-[7px] plastic-engrave tracking-widest z-10">TYPE I</div>
+                            <div class="absolute bottom-16 right-3 text-[7px] plastic-engrave tracking-widest z-10">NR [ ]</div>
+
+                            <div class="absolute inset-2 border-2 border-black/15 rounded-lg pointer-events-none z-10"></div>
+
+                            <!-- Capa de decoraciones (stickers / washi tape) -->
+                            <div id="decorationLayer" class="absolute inset-0 pointer-events-none" style="z-index:38;"></div>
+
+                            <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/40 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
+                            <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
+
+                            <div id="cassetteLabel" class="absolute top-6 w-[88%] h-[53%] label-solid border border-neutral-400/80 rounded shadow-sm flex flex-col items-center justify-start p-2 sm:p-3 z-20 transition-all duration-300">
+                                <div class="w-full border-b-2 border-red-500 pb-1 mb-1 flex justify-between items-center px-1">
+                                    <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">60 MIN</span>
+                                    <span id="labelPreview" class="font-handwriting text-neutral-900 text-xl sm:text-2xl leading-tight text-center flex-grow truncate px-2 transition-all">Mixtape</span>
+                                    <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">LADO A</span>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-20 sm:h-24 bg-black/20 backdrop-blur-[2px] rounded-lg border-2 border-black/30 z-30 flex items-center justify-between px-4 sm:px-6 shadow-[inset_0_5px_15px_rgba(0,0,0,0.5)] overflow-hidden">
-                            <div class="absolute inset-0 glass-glare pointer-events-none z-20"></div>
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
-                                <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
-                                <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
-                            </div>
-                            <div class="w-28 sm:w-36 h-10 sm:h-12 bg-neutral-900 rounded-md flex items-center justify-center shadow-[inset_0_0_10px_rgba(0,0,0,1)] relative overflow-hidden border border-neutral-700/50 z-10">
-                                <div class="absolute left-[-20px] w-20 h-20 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
-                                <div class="absolute right-[-20px] w-16 h-16 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
-                                <div class="w-20 sm:w-24 h-[2px] bg-neutral-500/30 rounded z-10"></div>
-                            </div>
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
-                                <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
-                                <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
-                            </div>
-                        </div>
-
-                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-t border-black/30 rounded-t-xl flex justify-center items-end pb-2 opacity-90 shadow-[inset_0_10px_20px_rgba(0,0,0,0.2)] z-10 overflow-hidden">
-                            <div class="absolute bottom-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- LADO B (REVERSO) -->
-                    <div id="cassetteBack" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden rotate-y-180" style="transform: rotateY(180deg); -webkit-transform: rotateY(180deg);">
-                        <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">B</div>
-                        <div class="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/30 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
-                        <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
-                        
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-b border-black/30 rounded-b-xl flex justify-center items-start pt-2 opacity-90 z-10 overflow-hidden">
-                            <div class="absolute top-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
-                        </div>
-
-                        <div class="absolute bottom-6 w-[88%] h-[60%] bg-white border border-neutral-400 rounded-sm shadow-md p-3 z-20 flex flex-col">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">TRACKLIST</span>
-                                <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">LADO B</span>
-                            </div>
-                            <div class="w-full h-[2px] bg-neutral-800 mb-1"></div>
                             
-                            <div class="flex-grow tracklist-bg relative font-handwriting text-neutral-800 overflow-hidden text-left pt-[2px]" id="tracklistPreview">
-                                <div class="text-neutral-400 italic text-center mt-6 font-standard text-xs">Agrega canciones...</div>
+                            <div class="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-20 sm:h-24 bg-black/20 backdrop-blur-[2px] rounded-lg border-2 border-black/30 z-30 flex items-center justify-between px-4 sm:px-6 shadow-[inset_0_5px_15px_rgba(0,0,0,0.5)] overflow-hidden">
+                                <div class="absolute inset-0 glass-glare pointer-events-none z-20"></div>
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
+                                    <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
+                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
+                                </div>
+                                <div class="w-28 sm:w-36 h-10 sm:h-12 bg-neutral-900 rounded-md flex items-center justify-center shadow-[inset_0_0_10px_rgba(0,0,0,1)] relative overflow-hidden border border-neutral-700/50 z-10">
+                                    <div class="absolute left-[-20px] w-20 h-20 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
+                                    <div class="absolute right-[-20px] w-16 h-16 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
+                                    <div class="w-20 sm:w-24 h-[2px] bg-neutral-500/30 rounded z-10"></div>
+                                </div>
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
+                                    <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
+                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
+                                </div>
+                            </div>
+
+                            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-t border-black/30 rounded-t-xl flex justify-center items-end pb-2 opacity-90 shadow-[inset_0_10px_20px_rgba(0,0,0,0.2)] z-10 overflow-hidden">
+                                <div class="absolute bottom-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
+                                <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- LADO B (REVERSO) -->
+                        <div id="cassetteBack" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden rotate-y-180" style="transform: rotateY(180deg); -webkit-transform: rotateY(180deg);">
+                            <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">B</div>
+                            <div class="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/30 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
+                            <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
+                            
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-b border-black/30 rounded-b-xl flex justify-center items-start pt-2 opacity-90 z-10 overflow-hidden">
+                                <div class="absolute top-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
+                                <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
+                            </div>
+
+                            <div class="absolute bottom-6 w-[88%] h-[60%] bg-white border border-neutral-400 rounded-sm shadow-md p-3 z-20 flex flex-col">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">TRACKLIST</span>
+                                    <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">LADO B</span>
+                                </div>
+                                <div class="w-full h-[2px] bg-neutral-800 mb-1"></div>
+                                
+                                <div class="flex-grow tracklist-bg relative font-handwriting text-neutral-800 overflow-hidden text-left pt-[2px]" id="tracklistPreview">
+                                    <div class="text-neutral-400 italic text-center mt-6 font-standard text-xs">Agrega canciones...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -180,12 +245,11 @@
             <!-- REPRODUCTOR DE AUDIO (COVER HACK) -->
             <div id="playerContainerGlobal" class="hidden mb-6 rounded-xl shadow-lg border border-neutral-700 bg-[#1a1a1a] text-white relative h-[90px] sm:h-[100px] overflow-hidden">
                 
-                <!-- IFRAME DE YOUTUBE: Físicamente debajo de todo, en tamaño real para engañar al celular -->
-                <div id="ytContainer" class="absolute top-0 left-0 w-[800px] h-[800px] z-0 pointer-events-none opacity-100">
-                    <div id="ytPlayerHidden"></div>
-                </div>
+                <!-- DOS IFRAMES OCULTOS: player activo + player precargado para el crossfade -->
+                <div id="ytSlot0" class="absolute top-0 left-0 w-[800px] h-[800px] z-0 pointer-events-none opacity-100"><div id="ytPlayerHidden0"></div></div>
+                <div id="ytSlot1" class="absolute top-0 left-0 w-[800px] h-[800px] z-0 pointer-events-none opacity-100"><div id="ytPlayerHidden1"></div></div>
 
-                <!-- LA CARCASA VISUAL: Cubre el iframe 100% -->
+                <!-- LA CARCASA VISUAL: Cubre los iframes 100% -->
                 <div class="absolute inset-0 bg-[#1a1a1a] z-10 p-4 flex items-center justify-between gap-4 w-full h-full">
                     <div id="spinDisk" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-inner border border-neutral-600 relative overflow-hidden flex-shrink-0 vinyl-texture transition-transform duration-500">
                         <div class="absolute w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full z-10 border-[2px] border-white/20 shadow-sm"></div>
@@ -214,6 +278,15 @@
                 <p id="receiverNote" class="text-neutral-800 text-lg leading-relaxed font-medium italic">...</p>
             </div>
 
+            <!-- NOTA DE VOZ (vista del receptor) -->
+            <div id="voiceNoteReceiverWrap" class="hidden mb-6 bg-white/80 backdrop-blur border border-white rounded-2xl p-5 shadow-lg flex items-center gap-4">
+                <div class="text-3xl">🎙️</div>
+                <div class="flex-grow">
+                    <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">Nota de voz</p>
+                    <audio id="voiceNoteReceiverAudio" controls class="w-full"></audio>
+                </div>
+            </div>
+
             <!-- FORMULARIO DE CREACIÓN -->
             <div id="formZone" class="space-y-7">
                 <div class="space-y-4 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
@@ -225,6 +298,15 @@
                     <div>
                         <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota oculta</label>
                         <textarea id="mensaje" placeholder="Escribe un mensaje para cuando abran el casete..." rows="2" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota de voz (opcional, máx. 15s)</label>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="recordBtn" onclick="toggleRecording()" class="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-neutral-800 transition text-sm">🎙️ Grabar nota</button>
+                            <span id="recordStatus" class="text-xs text-neutral-500">Máx. 15 segundos</span>
+                        </div>
+                        <audio id="voiceNotePreview" controls class="hidden w-full mt-2"></audio>
+                        <button type="button" id="deleteVoiceNote" onclick="deleteVoiceNote()" class="hidden text-xs text-red-500 hover:text-red-700 mt-1 underline">Eliminar nota</button>
                     </div>
                 </div>
 
@@ -277,6 +359,40 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="pt-2">
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Foto para la carcasa (no se ve en el casete, se asoma detrás)</label>
+                        <input type="file" accept="image/*" id="casePhotoInput" onchange="handleCasePhotoUpload(event)" class="w-full text-sm border border-neutral-300/80 rounded-xl p-2 bg-white/90">
+                        <div id="casePhotoPreviewWrap" class="hidden mt-2 flex items-center gap-3">
+                            <img id="casePhotoPreviewImg" class="w-14 h-14 object-cover rounded-lg border border-neutral-300">
+                            <button type="button" onclick="removeCasePhoto()" class="text-xs text-red-500 hover:text-red-700 underline">Quitar foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
+                    <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">4. Decora tu casete</h3>
+                    <p class="text-xs text-neutral-500">Toca para agregar, luego arrastra sobre el casete. Usa el botón ✕ para quitar.</p>
+                    <div>
+                        <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Washi tape</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button class="palette-btn tape-1 rounded" onclick="addDecoration('tape',1)" title="Washi tape 1"></button>
+                            <button class="palette-btn tape-2 rounded" onclick="addDecoration('tape',2)" title="Washi tape 2"></button>
+                            <button class="palette-btn tape-3 rounded" onclick="addDecoration('tape',3)" title="Washi tape 3"></button>
+                            <button class="palette-btn tape-4 rounded" onclick="addDecoration('tape',4)" title="Washi tape 4"></button>
+                            <button class="palette-btn tape-5 rounded" onclick="addDecoration('tape',5)" title="Washi tape 5"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Stickers</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button class="w-10 h-10 text-2xl bg-white/80 border border-neutral-200 rounded-xl hover:scale-110 transition" onclick="addDecoration('sticker',1)">❤️</button>
+                            <button class="w-10 h-10 text-2xl bg-white/80 border border-neutral-200 rounded-xl hover:scale-110 transition" onclick="addDecoration('sticker',2)">⭐</button>
+                            <button class="w-10 h-10 text-2xl bg-white/80 border border-neutral-200 rounded-xl hover:scale-110 transition" onclick="addDecoration('sticker',3)">🌸</button>
+                            <button class="w-10 h-10 text-2xl bg-white/80 border border-neutral-200 rounded-xl hover:scale-110 transition" onclick="addDecoration('sticker',4)">🎵</button>
+                            <button class="w-10 h-10 text-2xl bg-white/80 border border-neutral-200 rounded-xl hover:scale-110 transition" onclick="addDecoration('sticker',5)">🌙</button>
+                        </div>
+                    </div>
                 </div>
 
                 <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
@@ -286,27 +402,59 @@
         </div>
     </div>
 
+    <!-- Barra de pestañas para mobile: casete vs. detalles/formulario -->
+    <div id="mobileTabBar" class="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur border border-neutral-200 rounded-full shadow-lg flex p-1 gap-1">
+        <button id="tab-cassette" class="mobile-tab-btn px-4 py-2 rounded-full text-sm font-bold transition" onclick="setMobileView('cassette')">📼 Casete</button>
+        <button id="tab-form" class="mobile-tab-btn px-4 py-2 rounded-full text-sm font-bold transition" onclick="setMobileView('form')">📝 Detalles</button>
+    </div>
+
     <script>
         let currentColor = 'bg-[#Facc15]';
         let songs = []; 
         const MAX_SONGS = 4;
         let isFlipped = false;
-        
-        let ytPlayer; 
-        let isPlaying = false;
 
-        // --- FIX 1: Bandera de estado real de la API de YouTube + cola de inicialización ---
+        // ---- Decoraciones (stickers / washi tape) ----
+        let decorations = [];
+        let decorationEditable = true;
+        const STICKERS = { 1: '❤️', 2: '⭐', 3: '🌸', 4: '🎵', 5: '🌙' };
+
+        // ---- Foto de la carcasa ----
+        let caseSheetPhoto = null;
+
+        // ---- Nota de voz ----
+        let voiceNoteData = null;
+        let mediaRecorder, recordedChunks = [], recordTimer;
+        let isRecording = false;
+
+        // ---- Reproductor YouTube (doble player para crossfade) ----
         let youtubeApiReady = false;
         let pendingSongsToInit = null;
+        let players = [null, null];
+        let loadedSongIndex = [-1, -1];
+        let activeIndex = 0;
+        let isPlaying = false;
+        let crossfading = false;
+        let monitorTimer = null;
+        const CROSSFADE_SECONDS = 4;
+
+        // ---- Vista mobile (pestañas) ----
+        let mobileView = 'form';
+        const mq = window.matchMedia('(min-width: 1024px)');
 
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
         window.onload = async function() {
             document.getElementById('mainContainer').classList.remove('opacity-0');
+            applyMobileView();
+            mq.addEventListener('change', applyMobileView);
+
             const urlParams = new URLSearchParams(window.location.search);
             const mixtapeId = urlParams.get('m');
-            
+
             if (mixtapeId) {
+                closeOnboarding(true); // sin animación, no aplica mood a un mixtape recibido
+
                 document.getElementById('loadingScreen').classList.remove('hidden');
                 document.getElementById('creatorPanel').style.display = 'none'; 
                 document.getElementById('cassettePanel').classList.remove('lg:w-1/2', 'border-b'); 
@@ -329,7 +477,28 @@
                         updatePreview();
                         updateStyle();
                         changeColor(data.color || 'bg-[#Facc15]');
-                        
+
+                        // Decoraciones (solo lectura para el receptor)
+                        decorations = data.decoraciones || [];
+                        decorationEditable = false;
+                        renderDecorations();
+
+                        // Foto de la carcasa
+                        caseSheetPhoto = data.fotoCaja || null;
+                        renderCasePhoto();
+
+                        // Nota de voz
+                        voiceNoteData = data.notaVoz || null;
+                        if (voiceNoteData) {
+                            document.getElementById('voiceNoteReceiverWrap').classList.remove('hidden');
+                            document.getElementById('voiceNoteReceiverAudio').src = voiceNoteData;
+                        }
+
+                        // Preview social (best-effort, ver nota sobre og:image dinámico)
+                        document.getElementById('ogTitle').setAttribute('content', `${data.titulo} - un mixtape para ti 📼`);
+                        document.getElementById('ogDesc').setAttribute('content', data.mensaje ? 'Alguien te dejó una nota junto con su mixtape 💌' : 'Alguien armó una cinta especial para ti. Dale play.');
+                        document.title = `${data.titulo} 📼`;
+
                         if(data.mensaje) {
                             document.getElementById('receiverMessage').classList.remove('hidden');
                             document.getElementById('receiverNote').innerText = data.mensaje;
@@ -362,7 +531,7 @@
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        // --- FIX 1 (cont.): callback oficial que YouTube llama cuando la API REALMENTE está lista ---
+        // Callback oficial: se dispara cuando la API de YouTube realmente terminó de cargar.
         window.onYouTubeIframeAPIReady = function() {
             youtubeApiReady = true;
             if (pendingSongsToInit) {
@@ -371,6 +540,61 @@
                 initYouTubePlayer(queued);
             }
         };
+
+        // =====================================================
+        // ONBOARDING
+        // =====================================================
+        const MOOD_PRESETS = {
+            nostalgico: { color: 'bg-[#Facc15]', font: 'font-handwriting', label: 'label-striped' },
+            amor:       { color: 'bg-[#F87171]', font: 'font-cursive',     label: 'label-sunset' },
+            fiesta:     { color: 'bg-[#A78BFA]', font: 'font-pixel',       label: 'label-grid' },
+            chill:      { color: 'bg-[#60A5FA]', font: 'font-standard',    label: 'label-transparent' },
+            aventura:   { color: 'bg-[#262626]', font: 'font-typewriter',  label: 'label-solid' },
+        };
+        function applyMood(mood) {
+            let preset;
+            if (mood === 'sorpresa') {
+                const keys = Object.keys(MOOD_PRESETS);
+                preset = MOOD_PRESETS[keys[Math.floor(Math.random() * keys.length)]];
+            } else {
+                preset = MOOD_PRESETS[mood] || MOOD_PRESETS.nostalgico;
+            }
+            document.getElementById('fontSelect').value = preset.font;
+            document.getElementById('labelSelect').value = preset.label;
+            updateStyle();
+            changeColor(preset.color);
+            closeOnboarding();
+        }
+        function closeOnboarding(instant) {
+            const ob = document.getElementById('onboardingScreen');
+            if (instant) { ob.classList.add('hidden'); return; }
+            ob.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => ob.classList.add('hidden'), 500);
+        }
+
+        // =====================================================
+        // VISTA MOBILE (pestañas)
+        // =====================================================
+        function applyMobileView() {
+            const cp = document.getElementById('cassettePanel');
+            const cr = document.getElementById('creatorPanel');
+            const bar = document.getElementById('mobileTabBar');
+            if (mq.matches) {
+                cp.style.display = '';
+                cr.style.display = '';
+                bar.style.display = 'none';
+                return;
+            }
+            bar.style.display = 'flex';
+            cp.style.display = (mobileView === 'cassette') ? '' : 'none';
+            cr.style.display = (mobileView === 'form') ? '' : 'none';
+            document.getElementById('tab-cassette').classList.toggle('active-tab', mobileView === 'cassette');
+            document.getElementById('tab-form').classList.toggle('active-tab', mobileView === 'form');
+        }
+        function setMobileView(view) {
+            mobileView = view;
+            applyMobileView();
+        }
 
         function flipCassette() {
             const wrapper = document.getElementById('cassetteWrapper');
@@ -506,109 +730,372 @@
             if (e.key === 'Enter') addSong();
         });
 
-        // REPRODUCTOR HACK 2.0 (A PRUEBA DE CELULARES)
-        function initYouTubePlayer(playlistSongs) {
-            if (!playlistSongs || playlistSongs.length === 0) return;
+        // =====================================================
+        // DECORACIONES: stickers y washi tape arrastrables
+        // =====================================================
+        function addDecoration(type, variant) {
+            if (decorations.length >= 12) return alert('Ya agregaste suficientes decoraciones 🙂');
+            decorations.push({
+                id: 'd' + Date.now() + Math.floor(Math.random() * 1000),
+                type, variant,
+                x: 42 + Math.random() * 16,
+                y: 42 + Math.random() * 16,
+                rot: Math.floor(Math.random() * 30 - 15)
+            });
+            renderDecorations();
+        }
 
-            // FIX 1 (cont.): si la API de YouTube todavía no está lista, encolamos y salimos.
-            // onYouTubeIframeAPIReady() volverá a llamar a esta función cuando sí lo esté.
+        function removeDecoration(id) {
+            decorations = decorations.filter(d => d.id !== id);
+            renderDecorations();
+        }
+
+        function renderDecorations() {
+            const layer = document.getElementById('decorationLayer');
+            layer.innerHTML = '';
+            decorations.forEach(d => {
+                const el = document.createElement('div');
+                el.className = 'decoration-item absolute select-none' + (decorationEditable ? ' cursor-grab' : '');
+                el.style.left = d.x + '%';
+                el.style.top = d.y + '%';
+                el.style.transform = `translate(-50%, -50%) rotate(${d.rot}deg)`;
+                el.style.pointerEvents = decorationEditable ? 'auto' : 'none';
+                el.dataset.id = d.id;
+
+                const content = document.createElement('div');
+                if (d.type === 'sticker') {
+                    content.className = 'text-3xl leading-none';
+                    content.innerText = STICKERS[d.variant] || '⭐';
+                } else {
+                    content.className = 'tape-' + d.variant;
+                }
+                el.appendChild(content);
+
+                if (decorationEditable) {
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.innerText = '✕';
+                    delBtn.className = 'absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] leading-none flex items-center justify-center shadow z-10';
+                    delBtn.style.pointerEvents = 'auto';
+                    delBtn.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+                    delBtn.addEventListener('click', (ev) => { ev.stopPropagation(); removeDecoration(d.id); });
+                    el.appendChild(delBtn);
+                    el.addEventListener('pointerdown', startDrag);
+                }
+                layer.appendChild(el);
+            });
+        }
+
+        let dragState = null;
+        function startDrag(e) {
+            e.preventDefault();
+            const id = e.currentTarget.dataset.id;
+            const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
+            dragState = { id, rectParent };
+            document.addEventListener('pointermove', onDrag);
+            document.addEventListener('pointerup', endDrag);
+        }
+        function onDrag(e) {
+            if (!dragState) return;
+            const { rectParent, id } = dragState;
+            let x = ((e.clientX - rectParent.left) / rectParent.width) * 100;
+            let y = ((e.clientY - rectParent.top) / rectParent.height) * 100;
+            x = Math.max(2, Math.min(98, x));
+            y = Math.max(2, Math.min(98, y));
+            const d = decorations.find(dd => dd.id === id);
+            if (d) { d.x = x; d.y = y; }
+            renderDecorations();
+        }
+        function endDrag() {
+            dragState = null;
+            document.removeEventListener('pointermove', onDrag);
+            document.removeEventListener('pointerup', endDrag);
+        }
+
+        // =====================================================
+        // FOTO DE LA CARCASA
+        // =====================================================
+        function resizeImageFile(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const scale = Math.min(1, maxWidth / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleCasePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const dataUrl = await resizeImageFile(file, 500, 0.75);
+                caseSheetPhoto = dataUrl;
+                document.getElementById('casePhotoPreviewImg').src = dataUrl;
+                document.getElementById('casePhotoPreviewWrap').classList.remove('hidden');
+                renderCasePhoto();
+            } catch (err) {
+                alert('No se pudo procesar la imagen.');
+            }
+        }
+        function removeCasePhoto() {
+            caseSheetPhoto = null;
+            document.getElementById('casePhotoInput').value = '';
+            document.getElementById('casePhotoPreviewWrap').classList.add('hidden');
+            renderCasePhoto();
+        }
+        function renderCasePhoto() {
+            const el = document.getElementById('caseSleeve');
+            if (caseSheetPhoto) {
+                el.style.backgroundImage = `url(${caseSheetPhoto})`;
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        // =====================================================
+        // NOTA DE VOZ
+        // =====================================================
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                    mediaRecorder.onstop = () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = () => { voiceNoteData = reader.result; };
+                        reader.readAsDataURL(blob);
+                        const audioPrev = document.getElementById('voiceNotePreview');
+                        audioPrev.src = URL.createObjectURL(blob);
+                        audioPrev.classList.remove('hidden');
+                        document.getElementById('deleteVoiceNote').classList.remove('hidden');
+                        document.getElementById('recordStatus').innerText = 'Nota grabada ✅';
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.innerText = '⏹️ Detener';
+                    document.getElementById('recordStatus').innerText = 'Grabando... (máx 15s)';
+                    recordTimer = setTimeout(() => { if (isRecording) toggleRecording(); }, 15000);
+                } catch (err) {
+                    alert('No se pudo acceder al micrófono. Revisa los permisos del navegador.');
+                }
+            } else {
+                isRecording = false;
+                clearTimeout(recordTimer);
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                btn.innerText = '🎙️ Grabar nota';
+            }
+        }
+        function deleteVoiceNote() {
+            voiceNoteData = null;
+            document.getElementById('voiceNotePreview').classList.add('hidden');
+            document.getElementById('deleteVoiceNote').classList.add('hidden');
+            document.getElementById('recordStatus').innerText = 'Máx. 15 segundos';
+        }
+
+        // =====================================================
+        // REPRODUCTOR CON CROSSFADE (dos players ocultos)
+        // =====================================================
+        function initYouTubePlayer(list) {
+            if (!list || list.length === 0) return;
+
             if (!youtubeApiReady || typeof YT === 'undefined' || !YT.Player) {
-                pendingSongsToInit = playlistSongs;
+                pendingSongsToInit = list;
                 document.getElementById('currentTrackLabel').innerText = "Cargando audio...";
                 document.getElementById('playPauseBtn').disabled = true;
                 return;
             }
 
-            const mainVideo = playlistSongs[0].id;
-            const restIds = playlistSongs.slice(1).map(s => s.id);
-
+            songs = list;
+            teardownPlayers();
             document.getElementById('currentTrackLabel').innerText = "Cargando audio...";
             document.getElementById('playPauseBtn').disabled = true;
+            activeIndex = 0;
+            loadedSongIndex = [-1, -1];
+            createPlayer(0, 0);
+        }
 
-            if (ytPlayer) {
-                ytPlayer.destroy();
-                document.getElementById('ytContainer').innerHTML = '<div id="ytPlayerHidden"></div>';
-            }
+        function teardownPlayers() {
+            [0, 1].forEach(i => {
+                if (players[i]) { try { players[i].destroy(); } catch (e) {} players[i] = null; }
+                const slot = document.getElementById('ytSlot' + i);
+                if (slot) slot.innerHTML = '<div id="ytPlayerHidden' + i + '"></div>';
+            });
+            clearInterval(monitorTimer);
+            isPlaying = false;
+            crossfading = false;
+        }
 
-            // FIX 2: solo incluir 'playlist' si hay más de una canción.
-            // Mandar 'playlist': '' (string vacío) puede hacer que el player falle al cargar.
-            const playerVars = {
-                'playsinline': 1,
-                'controls': 0,
-                'disablekb': 1,
-                'rel': 0,
-                'modestbranding': 1,
-                'fs': 0,
-                'origin': window.location.origin
-            };
-            if (restIds.length > 0) {
-                playerVars.playlist = restIds.join(',');
-            }
-
-            ytPlayer = new YT.Player('ytPlayerHidden', {
+        function createPlayer(slot, songIndex) {
+            if (songIndex >= songs.length) return;
+            const vid = songs[songIndex].id;
+            players[slot] = new YT.Player('ytPlayerHidden' + slot, {
                 height: '100%',
                 width: '100%',
-                videoId: mainVideo,
-                playerVars: playerVars,
+                videoId: vid,
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'fs': 0,
+                    'origin': window.location.origin
+                },
                 events: {
                     'onReady': function(event) {
-                        document.getElementById('currentTrackLabel').innerText = "▶ Listo. Presiona Play";
-                        document.getElementById('playPauseBtn').disabled = false;
-                        // iOS pre-carga el volumen
+                        loadedSongIndex[slot] = songIndex;
                         event.target.unMute();
-                        event.target.setVolume(100);
+                        event.target.setVolume(slot === activeIndex ? 100 : 0);
+                        if (slot === activeIndex) {
+                            document.getElementById('currentTrackLabel').innerText = "▶ Listo. Presiona Play";
+                            document.getElementById('playPauseBtn').disabled = false;
+                        }
+                        const other = slot === 0 ? 1 : 0;
+                        if (songIndex + 1 < songs.length && loadedSongIndex[other] !== songIndex + 1 && !players[other]) {
+                            createPlayer(other, songIndex + 1);
+                        }
                     },
-                    'onStateChange': onPlayerStateChange,
+                    'onStateChange': function(event) { onPlayerStateChange(event, slot); },
                     'onError': function(event) {
                         console.log("Error de YouTube", event.data);
-                        if(ytPlayer && typeof ytPlayer.nextVideo === 'function') ytPlayer.nextVideo();
                     }
                 }
             });
         }
 
         function togglePlay() {
-            if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
+            const p = players[activeIndex];
+            if (!p || typeof p.playVideo !== 'function') return;
             if (isPlaying) {
-                ytPlayer.pauseVideo();
+                p.pauseVideo();
             } else {
-                // FIX (robustez extra en móviles): aseguramos volumen/sin mute justo en el gesto del usuario
-                try { ytPlayer.unMute(); ytPlayer.setVolume(100); } catch(e) {}
-                ytPlayer.playVideo();
+                try { p.unMute(); p.setVolume(100); } catch (e) {}
+                p.playVideo();
             }
         }
 
         function nextTrack() {
-            if (ytPlayer && typeof ytPlayer.nextVideo === 'function') {
-                ytPlayer.nextVideo();
+            const nextSlot = activeIndex === 0 ? 1 : 0;
+            const nextSongIndex = loadedSongIndex[activeIndex] + 1;
+            if (nextSongIndex >= songs.length) return;
+            if (loadedSongIndex[nextSlot] === nextSongIndex && players[nextSlot]) {
+                doCrossfade(nextSlot, true);
+            } else {
+                activeIndex = nextSlot;
+                createPlayer(nextSlot, nextSongIndex);
             }
         }
 
-        function onPlayerStateChange(event) {
+        function startMonitor() {
+            clearInterval(monitorTimer);
+            monitorTimer = setInterval(() => {
+                if (!isPlaying || crossfading) return;
+                const p = players[activeIndex];
+                if (!p || typeof p.getDuration !== 'function') return;
+                const dur = p.getDuration();
+                const cur = p.getCurrentTime();
+                if (!dur) return;
+                const remaining = dur - cur;
+                const nextSlot = activeIndex === 0 ? 1 : 0;
+                const nextSongIndex = loadedSongIndex[activeIndex] + 1;
+                if (remaining <= CROSSFADE_SECONDS && remaining > 0) {
+                    if (loadedSongIndex[nextSlot] === nextSongIndex && players[nextSlot]) {
+                        doCrossfade(nextSlot, false);
+                    }
+                }
+            }, 500);
+        }
+
+        function doCrossfade(nextSlot, isManualSkip) {
+            crossfading = true;
+            const oldSlot = activeIndex;
+            const pNext = players[nextSlot];
+            const pOld = players[oldSlot];
+            if (!pNext) { crossfading = false; return; }
+
+            pNext.setVolume(0);
+            pNext.playVideo();
+
+            const totalMs = isManualSkip ? 600 : CROSSFADE_SECONDS * 1000;
+            const steps = isManualSkip ? 8 : 20;
+            const stepTime = totalMs / steps;
+            let i = 0;
+            const fadeTimer = setInterval(() => {
+                i++;
+                const vol = Math.round((i / steps) * 100);
+                try {
+                    pNext.setVolume(Math.min(100, vol));
+                    if (pOld) pOld.setVolume(Math.max(0, 100 - vol));
+                } catch (e) {}
+                if (i >= steps) {
+                    clearInterval(fadeTimer);
+                    try { if (pOld) { pOld.pauseVideo(); pOld.seekTo(0); } } catch (e) {}
+                    activeIndex = nextSlot;
+                    crossfading = false;
+                    const idx = loadedSongIndex[activeIndex];
+                    if (songs[idx]) document.getElementById('currentTrackLabel').innerText = songs[idx].title;
+                    const followIndex = idx + 1;
+                    if (followIndex < songs.length) {
+                        loadedSongIndex[oldSlot] = -1;
+                        createPlayer(oldSlot, followIndex);
+                    } else {
+                        loadedSongIndex[oldSlot] = -1;
+                    }
+                }
+            }, stepTime);
+        }
+
+        function onPlayerStateChange(event, slot) {
+            if (slot !== activeIndex) return;
             const playIcon = document.getElementById('playIcon');
             const pauseIcon = document.getElementById('pauseIcon');
             const spinDisk = document.getElementById('spinDisk');
-            const currentTrackLabel = document.getElementById('currentTrackLabel');
-            
+            const label = document.getElementById('currentTrackLabel');
+
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 playIcon.classList.add('hidden');
                 pauseIcon.classList.remove('hidden');
                 spinDisk.classList.add('spin');
-                
-                try {
-                    let index = ytPlayer.getPlaylistIndex();
-                    if(songs[index]) currentTrackLabel.innerText = songs[index].title;
-                } catch(e) {}
-                
-            } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                const idx = loadedSongIndex[activeIndex];
+                if (songs[idx]) label.innerText = songs[idx].title;
+                startMonitor();
+            } else if (event.data == YT.PlayerState.PAUSED) {
                 isPlaying = false;
                 playIcon.classList.remove('hidden');
                 pauseIcon.classList.add('hidden');
                 spinDisk.classList.remove('spin');
+            } else if (event.data == YT.PlayerState.ENDED) {
+                isPlaying = false;
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                spinDisk.classList.remove('spin');
+                label.innerText = 'Fin de la cinta 🎵';
             }
         }
 
+        // =====================================================
+        // GUARDAR MIXTAPE
+        // =====================================================
         async function generarMixtape() {
             const titulo = document.getElementById('titulo').value;
             const mensaje = document.getElementById('mensaje').value;
@@ -627,7 +1114,10 @@
                     mensaje: mensaje,
                     color: currentColor,
                     canciones: songs,
-                    estilos: { font: document.getElementById('fontSelect').value, label: document.getElementById('labelSelect').value }
+                    estilos: { font: document.getElementById('fontSelect').value, label: document.getElementById('labelSelect').value },
+                    decoraciones: decorations,
+                    fotoCaja: caseSheetPhoto,
+                    notaVoz: voiceNoteData
                 };
 
                 const response = await fetch(webhookUrl, {
@@ -646,8 +1136,12 @@
                     document.getElementById('successZone').classList.remove('hidden');
                     document.getElementById('playerContainerGlobal').classList.remove('hidden');
                     
+                    decorationEditable = false;
+                    renderDecorations();
+
                     initYouTubePlayer(songs);
                     if(isFlipped) flipCassette(); 
+                    setMobileView('cassette');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     alert("Error al guardar.");
