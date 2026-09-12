@@ -105,6 +105,11 @@
             margin: -14px;
         }
         .decoration-item.dragging { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)); }
+        .decoration-item, .decoration-item * { touch-action: none; }
+
+        /* Se activa en <body> mientras se arrastra una decoración, para que el navegador
+           no interprete el gesto como scroll/rebote de la página completa en celular. */
+        body.dragging-lock { overflow: hidden; overscroll-behavior: none; }
 
         .mobile-tab-btn.active-tab { background-color: black; color: white; }
     </style>
@@ -525,6 +530,8 @@
                         if (voiceNoteData) {
                             document.getElementById('voiceNoteReceiverWrap').classList.remove('hidden');
                             document.getElementById('voiceNoteReceiverAudio').src = voiceNoteData;
+                        } else {
+                            console.warn('[Mixtape] Este mixtape no trae "notaVoz" en la respuesta del backend. Si grabaste una nota al crearlo, revisa que tu Apps Script esté guardando y devolviendo ese campo.');
                         }
 
                         // Preview social (best-effort, ver nota sobre og:image dinámico)
@@ -851,13 +858,15 @@
             dragState = { id, rectParent, el };
             el.classList.add('dragging');
             el.style.zIndex = '60';
+            document.body.classList.add('dragging-lock'); // bloquea el scroll de toda la página
             try { el.setPointerCapture(e.pointerId); } catch (err) {}
-            el.addEventListener('pointermove', onDrag);
+            el.addEventListener('pointermove', onDrag, { passive: false });
             el.addEventListener('pointerup', endDrag);
             el.addEventListener('pointercancel', endDrag);
         }
         function onDrag(e) {
             if (!dragState) return;
+            e.preventDefault();
             const { rectParent, id, el } = dragState;
             let x = ((e.clientX - rectParent.left) / rectParent.width) * 100;
             let y = ((e.clientY - rectParent.top) / rectParent.height) * 100;
@@ -875,6 +884,7 @@
             el.removeEventListener('pointermove', onDrag);
             el.removeEventListener('pointerup', endDrag);
             el.removeEventListener('pointercancel', endDrag);
+            document.body.classList.remove('dragging-lock');
             dragState = null;
             renderDecorations(); // reconstruye limpio una sola vez, al soltar
         }
