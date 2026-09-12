@@ -11,7 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime:wght@400;700&family=Inter:wght@400;700&family=Outfit:wght@300;400;600;800&family=Permanent+Marker&family=VT323&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Outfit', sans-serif; background-color: #e5e7eb; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #e5e7eb;
+        }
+
         .spin { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
@@ -48,6 +52,7 @@
         .screw::after { content: ''; width: 8px; height: 1px; background: #374151; transform: rotate(45deg); }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
         .perspective-1000 { perspective: 1000px; -webkit-perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
@@ -61,11 +66,7 @@
         
         .vinyl-texture { background: repeating-radial-gradient(circle at center, #333 0, #333 1px, #222 1px, #222 3px); }
         
-        /* Reflejo de cristal para la ventana */
-        .glass-glare {
-            background: linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 65%);
-        }
-        /* Relieve de texto en plástico */
+        .glass-glare { background: linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 65%); }
         .plastic-engrave {
             color: rgba(0,0,0,0.4);
             text-shadow: 1px 1px 1px rgba(255,255,255,0.3), -1px -1px 1px rgba(0,0,0,0.2);
@@ -77,7 +78,6 @@
 
     <img src="assets/textura.jpg" class="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none opacity-90" alt="Fondo" onerror="this.style.display='none'">
 
-    <!-- Pantalla de Carga Inicial -->
     <div id="loadingScreen" class="fixed inset-0 bg-white/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center hidden">
         <div class="w-12 h-12 border-4 border-neutral-300 border-t-black rounded-full animate-spin mb-4"></div>
         <p class="font-bold text-lg text-neutral-800">Leyendo casete...</p>
@@ -94,13 +94,9 @@
                     <span id="flipText">Ver Lado B (Canciones)</span>
                 </button>
 
-                <!-- CONTENEDOR FLIP 3D -->
                 <div id="cassetteWrapper" class="w-full aspect-[16/10] relative transition-transform duration-700 transform-style-3d">
-                    
-                    <!-- LADO A (FRENTE) -->
+                    <!-- LADO A -->
                     <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
-                        
-                        <!-- Textos grabados en plástico -->
                         <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">A</div>
                         <div class="absolute top-2 right-6 text-[8px] plastic-engrave tracking-widest z-10">STEREO</div>
                         <div class="absolute bottom-16 left-3 text-[7px] plastic-engrave tracking-widest z-10">TYPE I</div>
@@ -119,58 +115,39 @@
                         </div>
                         
                         <div class="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-20 sm:h-24 bg-black/20 backdrop-blur-[2px] rounded-lg border-2 border-black/30 z-30 flex items-center justify-between px-4 sm:px-6 shadow-[inset_0_5px_15px_rgba(0,0,0,0.5)] overflow-hidden">
-                            <!-- Reflejo de Cristal -->
                             <div class="absolute inset-0 glass-glare pointer-events-none z-20"></div>
-
                             <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
                                 <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
                                 <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
                             </div>
-                            
                             <div class="w-28 sm:w-36 h-10 sm:h-12 bg-neutral-900 rounded-md flex items-center justify-center shadow-[inset_0_0_10px_rgba(0,0,0,1)] relative overflow-hidden border border-neutral-700/50 z-10">
                                 <div class="absolute left-[-20px] w-20 h-20 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
                                 <div class="absolute right-[-20px] w-16 h-16 bg-[#1a1a1a] rounded-full shadow-[0_0_5px_black]"></div>
                                 <div class="w-20 sm:w-24 h-[2px] bg-neutral-500/30 rounded z-10"></div>
                             </div>
-                            
                             <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[6px] border-neutral-200 bg-[#f8f9fa] flex items-center justify-center relative shadow-[0_0_8px_rgba(0,0,0,0.6)] z-10">
                                 <svg class="absolute w-full h-full spin text-neutral-800 opacity-90" viewBox="0 0 100 100" fill="currentColor"><path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z"/></svg>
                                 <div class="w-3 h-3 sm:w-4 sm:h-4 bg-neutral-800 rounded-full z-10 shadow-inner"></div>
                             </div>
                         </div>
 
-                        <!-- Puente y cinta expuesta (Realismo extra) -->
                         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-t border-black/30 rounded-t-xl flex justify-center items-end pb-2 opacity-90 shadow-[inset_0_10px_20px_rgba(0,0,0,0.2)] z-10 overflow-hidden">
-                            <!-- Franja de cinta magnética -->
                             <div class="absolute bottom-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
-                            <!-- Agujeros -->
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-4 h-4 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-4 h-4 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
+                            <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
                         </div>
                     </div>
 
                     <!-- LADO B (REVERSO) -->
                     <div id="cassetteBack" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden rotate-y-180" style="transform: rotateY(180deg); -webkit-transform: rotateY(180deg);">
-                        
                         <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">B</div>
-                        
                         <div class="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/30 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
                         <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
                         
-                        <!-- Puente invertido -->
                         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[85%] h-12 bg-black/15 border-b border-black/30 rounded-b-xl flex justify-center items-start pt-2 opacity-90 z-10 overflow-hidden">
                             <div class="absolute top-1 w-3/4 h-2 bg-[#2c1d11] shadow-[0_1px_2px_rgba(255,255,255,0.1)] rounded-sm"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-4 h-4 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-4 h-4 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
-                            <div class="w-3 h-3 bg-black/50 rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] z-10 mx-3"></div>
+                            <div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-4 h-4 bg-black/50 rounded-full z-10 mx-3"></div><div class="w-3 h-3 bg-black/50 rounded-full z-10 mx-3"></div>
                         </div>
 
-                        <!-- Hoja de raya (Tracklist) -->
                         <div class="absolute bottom-6 w-[88%] h-[60%] bg-white border border-neutral-400 rounded-sm shadow-md p-3 z-20 flex flex-col">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">TRACKLIST</span>
@@ -183,12 +160,11 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
 
-        <!-- PANEL IZQUIERDO: CONFIGURADOR -->
+        <!-- PANEL IZQUIERDO: CONFIGURADOR / VISTA -->
         <div id="creatorPanel" class="w-full lg:w-1/2 p-6 md:p-10 bg-white/60 lg:border-r border-white/40 sm:rounded-b-3xl lg:rounded-bl-3xl lg:rounded-tl-3xl lg:rounded-br-none transition-all">
             <h1 class="text-4xl sm:text-5xl font-extrabold text-neutral-900 mb-2 tracking-tight mt-2 lg:mt-0">Tu Mixtape</h1>
             <p class="text-neutral-600 mb-8 font-medium">Diseña el casete y añade hasta 4 canciones de YouTube.</p>
@@ -201,35 +177,40 @@
                 <button onclick="resetForm()" class="block w-full text-sm text-neutral-500 hover:text-neutral-800 underline transition">Crear otra cinta</button>
             </div>
 
-            <!-- REPRODUCTOR DE AUDIO -->
-            <div id="playerContainerGlobal" class="hidden mb-6 rounded-xl overflow-hidden shadow-lg border border-neutral-700 bg-[#1a1a1a] p-4 text-white relative">
-                <div class="flex items-center justify-between gap-4 relative z-10">
-                    <div id="spinDisk" class="w-12 h-12 rounded-full flex items-center justify-center shadow-inner border border-neutral-600 relative overflow-hidden flex-shrink-0 vinyl-texture transition-transform duration-500">
-                        <div class="absolute w-3 h-3 bg-red-500 rounded-full z-10 border-[2px] border-white/20"></div>
-                    </div>
-                    <div class="flex-grow text-left overflow-hidden">
-                        <p class="text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5">REPRODUCTOR DE AUDIO</p>
-                        <p id="currentTrackLabel" class="text-white font-medium truncate text-sm">Cargando cinta...</p>
-                    </div>
-                    <div class="flex gap-2 flex-shrink-0">
-                        <button id="playPauseBtn" onclick="togglePlay()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-neutral-200 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                            <svg id="playIcon" class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        </button>
-                        <button onclick="nextTrack()" class="w-10 h-10 bg-neutral-800 text-white rounded-full flex items-center justify-center hover:bg-neutral-700 transition border border-neutral-700 shadow-md">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                        </button>
-                    </div>
+            <!-- REPRODUCTOR DE AUDIO (COVER HACK) -->
+            <div id="playerContainerGlobal" class="hidden mb-6 rounded-xl shadow-lg border border-neutral-700 bg-[#1a1a1a] text-white relative h-[90px] sm:h-[100px] overflow-hidden">
+                
+                <!-- IFRAME DE YOUTUBE: Físicamente debajo de todo, en tamaño real para engañar al celular -->
+                <div id="ytContainer" class="absolute top-0 left-0 w-[800px] h-[800px] z-0 pointer-events-none opacity-100">
+                    <div id="ytPlayerHidden"></div>
                 </div>
-                <!-- YouTube Iframe Hack: En pantalla, pero opacidad casi cero y sin eventos -->
-                <div class="absolute inset-0 z-0 opacity-[0.01] pointer-events-none w-full h-full">
-                    <div id="ytPlayerHidden" class="w-full h-full"></div>
+
+                <!-- LA CARCASA VISUAL: Cubre el iframe 100% -->
+                <div class="absolute inset-0 bg-[#1a1a1a] z-10 p-4 flex items-center justify-between gap-4 w-full h-full">
+                    <div id="spinDisk" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-inner border border-neutral-600 relative overflow-hidden flex-shrink-0 vinyl-texture transition-transform duration-500">
+                        <div class="absolute w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full z-10 border-[2px] border-white/20 shadow-sm"></div>
+                    </div>
+                    
+                    <div class="flex-grow text-left overflow-hidden">
+                        <p class="text-[9px] sm:text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5 sm:mb-1">REPRODUCTOR DE AUDIO</p>
+                        <p id="currentTrackLabel" class="text-white font-medium truncate text-sm sm:text-base">Cargando cinta...</p>
+                    </div>
+                    
+                    <div class="flex gap-2 sm:gap-3 flex-shrink-0">
+                        <button id="playPauseBtn" onclick="togglePlay()" class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center hover:bg-neutral-200 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg id="playIcon" class="w-5 h-5 sm:w-6 sm:h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pauseIcon" class="w-5 h-5 sm:w-6 sm:h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button onclick="nextTrack()" class="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-800 text-white rounded-full flex items-center justify-center hover:bg-neutral-700 transition border border-neutral-600 shadow-md">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- NOTA PARA EL RECEPTOR -->
             <div id="receiverMessage" class="hidden mb-6 bg-white/80 backdrop-blur border border-white rounded-2xl p-6 text-left shadow-lg">
-                <p class="text-sm font-bold text-neutral-500 uppercase tracking-widest border-b border-neutral-200 pb-2 mb-3">Nota adjunta</p>
+                <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest border-b border-neutral-200 pb-2 mb-3">Nota adjunta</p>
                 <p id="receiverNote" class="text-neutral-800 text-lg leading-relaxed font-medium italic">...</p>
             </div>
 
@@ -511,7 +492,7 @@
             if (e.key === 'Enter') addSong();
         });
 
-        // REPRODUCTOR HACK (NUEVO)
+        // REPRODUCTOR HACK 2.0 (A PRUEBA DE CELULARES)
         function initYouTubePlayer(playlistSongs) {
             if (!playlistSongs || playlistSongs.length === 0) return;
             const mainVideo = playlistSongs[0].id;
@@ -522,7 +503,7 @@
 
             if (ytPlayer) {
                 ytPlayer.destroy();
-                document.getElementById('ytPlayerHidden').outerHTML = '<div id="ytPlayerHidden" class="w-full h-full"></div>';
+                document.getElementById('ytContainer').innerHTML = '<div id="ytPlayerHidden"></div>';
             }
 
             ytPlayer = new YT.Player('ytPlayerHidden', {
@@ -535,17 +516,20 @@
                     'controls': 0,
                     'disablekb': 1,
                     'rel': 0,
-                    'iv_load_policy': 3,
+                    'modestbranding': 1,
                     'fs': 0,
-                    'modestbranding': 1
+                    'origin': window.location.origin
                 },
                 events: {
-                    'onReady': function() {
+                    'onReady': function(event) {
                         document.getElementById('currentTrackLabel').innerText = "▶ Listo. Presiona Play";
                         document.getElementById('playPauseBtn').disabled = false;
+                        // iOS pre-carga el volumen
+                        event.target.setVolume(100);
                     },
                     'onStateChange': onPlayerStateChange,
                     'onError': function(event) {
+                        console.log("Error de YouTube", event.data);
                         if(ytPlayer && typeof ytPlayer.nextVideo === 'function') ytPlayer.nextVideo();
                     }
                 }
@@ -559,7 +543,9 @@
         }
 
         function nextTrack() {
-            if (ytPlayer && typeof ytPlayer.nextVideo === 'function') ytPlayer.nextVideo();
+            if (ytPlayer && typeof ytPlayer.nextVideo === 'function') {
+                ytPlayer.nextVideo();
+            }
         }
 
         function onPlayerStateChange(event) {
