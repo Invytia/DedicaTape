@@ -295,6 +295,10 @@
         let ytPlayer; 
         let isPlaying = false;
 
+        // --- FIX 1: Bandera de estado real de la API de YouTube + cola de inicialización ---
+        let youtubeApiReady = false;
+        let pendingSongsToInit = null;
+
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
         window.onload = async function() {
@@ -357,6 +361,16 @@
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // --- FIX 1 (cont.): callback oficial que YouTube llama cuando la API REALMENTE está lista ---
+        window.onYouTubeIframeAPIReady = function() {
+            youtubeApiReady = true;
+            if (pendingSongsToInit) {
+                const queued = pendingSongsToInit;
+                pendingSongsToInit = null;
+                initYouTubePlayer(queued);
+            }
+        };
 
         function flipCassette() {
             const wrapper = document.getElementById('cassetteWrapper');
@@ -495,8 +509,18 @@
         // REPRODUCTOR HACK 2.0 (A PRUEBA DE CELULARES)
         function initYouTubePlayer(playlistSongs) {
             if (!playlistSongs || playlistSongs.length === 0) return;
+
+            // FIX 1 (cont.): si la API de YouTube todavía no está lista, encolamos y salimos.
+            // onYouTubeIframeAPIReady() volverá a llamar a esta función cuando sí lo esté.
+            if (!youtubeApiReady || typeof YT === 'undefined' || !YT.Player) {
+                pendingSongsToInit = playlistSongs;
+                document.getElementById('currentTrackLabel').innerText = "Cargando audio...";
+                document.getElementById('playPauseBtn').disabled = true;
+                return;
+            }
+
             const mainVideo = playlistSongs[0].id;
-            const playlist = playlistSongs.slice(1).map(s => s.id).join(',');
+            const restIds = playlistSongs.slice(1).map(s => s.id);
 
             document.getElementById('currentTrackLabel').innerText = "Cargando audio...";
             document.getElementById('playPauseBtn').disabled = true;
@@ -506,25 +530,32 @@
                 document.getElementById('ytContainer').innerHTML = '<div id="ytPlayerHidden"></div>';
             }
 
+            // FIX 2: solo incluir 'playlist' si hay más de una canción.
+            // Mandar 'playlist': '' (string vacío) puede hacer que el player falle al cargar.
+            const playerVars = {
+                'playsinline': 1,
+                'controls': 0,
+                'disablekb': 1,
+                'rel': 0,
+                'modestbranding': 1,
+                'fs': 0,
+                'origin': window.location.origin
+            };
+            if (restIds.length > 0) {
+                playerVars.playlist = restIds.join(',');
+            }
+
             ytPlayer = new YT.Player('ytPlayerHidden', {
                 height: '100%',
                 width: '100%',
                 videoId: mainVideo,
-                playerVars: {
-                    'playsinline': 1,
-                    'playlist': playlist,
-                    'controls': 0,
-                    'disablekb': 1,
-                    'rel': 0,
-                    'modestbranding': 1,
-                    'fs': 0,
-                    'origin': window.location.origin
-                },
+                playerVars: playerVars,
                 events: {
                     'onReady': function(event) {
                         document.getElementById('currentTrackLabel').innerText = "▶ Listo. Presiona Play";
                         document.getElementById('playPauseBtn').disabled = false;
                         // iOS pre-carga el volumen
+                        event.target.unMute();
                         event.target.setVolume(100);
                     },
                     'onStateChange': onPlayerStateChange,
@@ -538,8 +569,13 @@
 
         function togglePlay() {
             if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
-            if (isPlaying) ytPlayer.pauseVideo();
-            else ytPlayer.playVideo();
+            if (isPlaying) {
+                ytPlayer.pauseVideo();
+            } else {
+                // FIX (robustez extra en móviles): aseguramos volumen/sin mute justo en el gesto del usuario
+                try { ytPlayer.unMute(); ytPlayer.setVolume(100); } catch(e) {}
+                ytPlayer.playVideo();
+            }
         }
 
         function nextTrack() {
