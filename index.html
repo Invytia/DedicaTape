@@ -85,18 +85,26 @@
 
         /* --- Washi tape (5 variantes) --- */
         .tape-1, .tape-2, .tape-3, .tape-4, .tape-5 {
-            width: 70px; height: 26px; opacity: 0.88; border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+            width: 94px; height: 36px; opacity: 0.9; border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
         }
-        .tape-1 { background: repeating-linear-gradient(45deg, #fbcfe8, #fbcfe8 8px, #f9a8d4 8px, #f9a8d4 16px); }
-        .tape-2 { background-color: #6ee7b7; background-image: radial-gradient(circle, #a7f3d0 2.5px, transparent 3px); background-size: 12px 12px; }
-        .tape-3 { background-color: #fde68a; background-image: repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(0,0,0,0.08) 5px, rgba(0,0,0,0.08) 6px), repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(0,0,0,0.08) 5px, rgba(0,0,0,0.08) 6px); }
+        .tape-1 { background: repeating-linear-gradient(45deg, #fbcfe8, #fbcfe8 10px, #f9a8d4 10px, #f9a8d4 20px); }
+        .tape-2 { background-color: #6ee7b7; background-image: radial-gradient(circle, #a7f3d0 3px, transparent 3.5px); background-size: 14px 14px; }
+        .tape-3 { background-color: #fde68a; background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(0,0,0,0.08) 6px, rgba(0,0,0,0.08) 7px), repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(0,0,0,0.08) 6px, rgba(0,0,0,0.08) 7px); }
         .tape-4 { background: linear-gradient(120deg, #fca5a5, #fdba74, #fde68a); }
-        .tape-5 { background: repeating-linear-gradient(45deg, #d6c8ae, #d6c8ae 4px, #c2ad83 4px, #c2ad83 8px); }
+        .tape-5 { background: repeating-linear-gradient(45deg, #d6c8ae, #d6c8ae 5px, #c2ad83 5px, #c2ad83 10px); }
 
-        .palette-btn { width: 44px; height: 24px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
+        .palette-btn { width: 56px; height: 30px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
 
-        .decoration-item { touch-action: none; }
+        /* Área de toque generosa: el contenido visual va centrado dentro de un padding invisible más grande,
+           así en celular es mucho más fácil agarrar la decoración con el dedo. */
+        .decoration-item {
+            touch-action: none;
+            -webkit-user-select: none; user-select: none;
+            padding: 14px;
+            margin: -14px;
+        }
+        .decoration-item.dragging { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)); }
 
         .mobile-tab-btn.active-tab { background-color: black; color: white; }
     </style>
@@ -113,8 +121,9 @@
     <!-- ONBOARDING: elige tu mood -->
     <div id="onboardingScreen" class="fixed inset-0 bg-neutral-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-6 transition-opacity duration-500">
         <div class="max-w-lg w-full text-center">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">¿Qué vibra tiene tu mixtape?</h2>
-            <p class="text-neutral-300 mb-8">Elige un mood y armamos el casete a tu estilo. Puedes cambiarlo todo después.</p>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Antes de empezar, elige un punto de partida</h2>
+            <p class="text-neutral-300 mb-1">Esto solo precarga el color, la tipografía y el estilo de etiqueta del casete según la vibra que elijas.</p>
+            <p class="text-neutral-400 text-sm mb-8">Es solo para no empezar en blanco — nada queda fijo, puedes cambiar cualquier cosa después en "Personalización Visual".</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                 <button onclick="applyMood('nostalgico')" class="mood-btn bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-4 text-white transition">
                     <div class="text-3xl mb-1">🌇</div><div class="font-bold text-sm">Nostálgico</div>
@@ -136,6 +145,16 @@
                 </button>
             </div>
             <button onclick="closeOnboarding()" class="text-sm text-neutral-400 hover:text-white underline transition">Saltar, ya sé lo que quiero</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE REGALO: se muestra antes de revelar un mixtape recibido -->
+    <div id="giftReveal" class="hidden fixed inset-0 z-[150] bg-gradient-to-br from-amber-100 via-rose-100 to-purple-100 flex items-center justify-center p-6 text-center opacity-0 transition-opacity duration-700">
+        <div>
+            <div class="text-6xl mb-4">🎁</div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-neutral-900 mb-2">Alguien te preparó un mixtape</h2>
+            <p id="giftTitlePreview" class="font-handwriting text-2xl text-neutral-700 mb-6">"..."</p>
+            <button onclick="openGift()" class="bg-black text-white font-extrabold px-8 py-4 rounded-full shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all">Abrir mi mixtape 🎧</button>
         </div>
     </div>
 
@@ -231,8 +250,8 @@
 
         <!-- PANEL IZQUIERDO: CONFIGURADOR / VISTA -->
         <div id="creatorPanel" class="w-full lg:w-1/2 p-6 md:p-10 bg-white/60 lg:border-r border-white/40 sm:rounded-b-3xl lg:rounded-bl-3xl lg:rounded-tl-3xl lg:rounded-br-none transition-all">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-neutral-900 mb-2 tracking-tight mt-2 lg:mt-0">Tu Mixtape</h1>
-            <p class="text-neutral-600 mb-8 font-medium">Diseña el casete y añade hasta 4 canciones de YouTube.</p>
+            <h1 id="mainHeading" class="text-4xl sm:text-5xl font-extrabold text-neutral-900 mb-2 tracking-tight mt-2 lg:mt-0">Tu Mixtape</h1>
+            <p id="mainSubheading" class="text-neutral-600 mb-8 font-medium">Diseña el casete y añade hasta 4 canciones de YouTube.</p>
             
             <div id="successZone" class="hidden bg-green-50/90 backdrop-blur border border-green-200 rounded-xl p-6 text-center shadow-lg mb-6">
                 <h3 class="text-green-800 font-bold mb-2 text-xl">¡Cinta grabada con éxito! 📼</h3>
@@ -240,6 +259,29 @@
                 <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded-lg p-3 text-center text-sm mb-4 outline-none bg-white font-semibold shadow-inner text-neutral-600">
                 <button onclick="copyLink()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-4">Copiar Enlace</button>
                 <button onclick="resetForm()" class="block w-full text-sm text-neutral-500 hover:text-neutral-800 underline transition">Crear otra cinta</button>
+            </div>
+
+            <!-- NOTA PARA EL RECEPTOR: se muestra primero, como una cartita -->
+            <div id="receiverMessage" class="hidden mb-6 bg-gradient-to-br from-white/90 to-rose-50/80 backdrop-blur border border-white rounded-2xl p-6 text-left shadow-lg relative overflow-hidden">
+                <div class="absolute -top-2 -left-1 text-6xl text-rose-200 font-serif select-none pointer-events-none leading-none">❝</div>
+                <p class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-3 relative">💌 Una nota para ti</p>
+                <p id="receiverNote" class="text-neutral-800 text-xl leading-relaxed font-cursive relative">...</p>
+            </div>
+
+            <!-- NOTA DE VOZ (vista del receptor): botón custom, no se reproduce sola -->
+            <div id="voiceNoteReceiverWrap" class="hidden mb-6">
+                <button type="button" onclick="toggleVoiceNotePlayback()" class="w-full flex items-center gap-4 bg-white/80 backdrop-blur border border-white rounded-2xl p-5 shadow-lg hover:shadow-xl hover:bg-white/95 transition text-left">
+                    <div id="voiceNoteIconWrap" class="text-3xl flex-shrink-0">🎙️</div>
+                    <div class="flex-grow overflow-hidden">
+                        <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">Nota de voz</p>
+                        <p id="voiceNoteStatusText" class="text-neutral-800 font-semibold truncate">Toca para escuchar</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
+                        <svg id="voiceNotePlayIcon" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="voiceNotePauseIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </div>
+                </button>
+                <audio id="voiceNoteReceiverAudio" class="hidden"></audio>
             </div>
 
             <!-- REPRODUCTOR DE AUDIO (COVER HACK) -->
@@ -269,21 +311,6 @@
                             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
                         </button>
                     </div>
-                </div>
-            </div>
-
-            <!-- NOTA PARA EL RECEPTOR -->
-            <div id="receiverMessage" class="hidden mb-6 bg-white/80 backdrop-blur border border-white rounded-2xl p-6 text-left shadow-lg">
-                <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest border-b border-neutral-200 pb-2 mb-3">Nota adjunta</p>
-                <p id="receiverNote" class="text-neutral-800 text-lg leading-relaxed font-medium italic">...</p>
-            </div>
-
-            <!-- NOTA DE VOZ (vista del receptor) -->
-            <div id="voiceNoteReceiverWrap" class="hidden mb-6 bg-white/80 backdrop-blur border border-white rounded-2xl p-5 shadow-lg flex items-center gap-4">
-                <div class="text-3xl">🎙️</div>
-                <div class="flex-grow">
-                    <p class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">Nota de voz</p>
-                    <audio id="voiceNoteReceiverAudio" controls class="w-full"></audio>
                 </div>
             </div>
 
@@ -445,17 +472,23 @@
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
         window.onload = async function() {
-            document.getElementById('mainContainer').classList.remove('opacity-0');
             applyMobileView();
             mq.addEventListener('change', applyMobileView);
+            setupVoiceNoteAudioEvents();
 
             const urlParams = new URLSearchParams(window.location.search);
             const mixtapeId = urlParams.get('m');
 
-            if (mixtapeId) {
-                closeOnboarding(true); // sin animación, no aplica mood a un mixtape recibido
+            if (!mixtapeId) {
+                // Flujo de creación: se revela el formulario de una vez (el onboarding ya está visible encima).
+                document.getElementById('mainContainer').classList.remove('opacity-0');
+                return;
+            }
 
-                document.getElementById('loadingScreen').classList.remove('hidden');
+            // Flujo de receptor: el mixtape se revela recién cuando toca "Abrir mi mixtape".
+            closeOnboarding(true); // sin animación, no aplica mood a un mixtape recibido
+
+            document.getElementById('loadingScreen').classList.remove('hidden');
                 document.getElementById('creatorPanel').style.display = 'none'; 
                 document.getElementById('cassettePanel').classList.remove('lg:w-1/2', 'border-b'); 
                 document.getElementById('cassettePanel').classList.add('w-full');
@@ -515,16 +548,34 @@
                         document.getElementById('playerContainerGlobal').classList.remove('hidden');
                         initYouTubePlayer(songs);
 
+                        // Encabezado personalizado + pantalla de regalo antes de revelar todo
+                        document.getElementById('mainHeading').innerText = `${data.titulo} 📼`;
+                        document.getElementById('mainSubheading').innerText = 'Alguien armó esta cinta especial para ti. Ábrela cuando quieras.';
+                        document.getElementById('giftTitlePreview').innerText = `"${data.titulo}"`;
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                        const gr = document.getElementById('giftReveal');
+                        gr.classList.remove('hidden');
+                        requestAnimationFrame(() => gr.classList.remove('opacity-0'));
+
                     } else {
                         alert("Este mixtape no existe o fue borrado.");
                         window.location.href = window.location.pathname; 
+                        return;
                     }
                 } catch (error) {
                     alert("Error al cargar la cinta.");
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    return;
                 }
-                document.getElementById('loadingScreen').classList.add('hidden');
-            }
         };
+
+        function openGift() {
+            const gr = document.getElementById('giftReveal');
+            gr.classList.add('opacity-0');
+            setTimeout(() => gr.classList.add('hidden'), 700);
+            document.getElementById('mainContainer').classList.remove('opacity-0');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        }
 
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -775,7 +826,9 @@
                     const delBtn = document.createElement('button');
                     delBtn.type = 'button';
                     delBtn.innerText = '✕';
-                    delBtn.className = 'absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] leading-none flex items-center justify-center shadow z-10';
+                    delBtn.className = 'absolute w-6 h-6 bg-red-500 text-white rounded-full text-[11px] leading-none flex items-center justify-center shadow z-10';
+                    delBtn.style.top = '2px';
+                    delBtn.style.right = '2px';
                     delBtn.style.pointerEvents = 'auto';
                     delBtn.addEventListener('pointerdown', (ev) => ev.stopPropagation());
                     delBtn.addEventListener('click', (ev) => { ev.stopPropagation(); removeDecoration(d.id); });
@@ -786,30 +839,44 @@
             });
         }
 
+        // Arrastre de decoraciones: se mueve SOLO el elemento arrastrado (sin re-renderizar
+        // toda la capa en cada frame), y se usa pointer capture para que funcione fluido en
+        // pantallas táctiles aunque el dedo se salga un poco del elemento.
         let dragState = null;
         function startDrag(e) {
             e.preventDefault();
-            const id = e.currentTarget.dataset.id;
+            const el = e.currentTarget;
+            const id = el.dataset.id;
             const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
-            dragState = { id, rectParent };
-            document.addEventListener('pointermove', onDrag);
-            document.addEventListener('pointerup', endDrag);
+            dragState = { id, rectParent, el };
+            el.classList.add('dragging');
+            el.style.zIndex = '60';
+            try { el.setPointerCapture(e.pointerId); } catch (err) {}
+            el.addEventListener('pointermove', onDrag);
+            el.addEventListener('pointerup', endDrag);
+            el.addEventListener('pointercancel', endDrag);
         }
         function onDrag(e) {
             if (!dragState) return;
-            const { rectParent, id } = dragState;
+            const { rectParent, id, el } = dragState;
             let x = ((e.clientX - rectParent.left) / rectParent.width) * 100;
             let y = ((e.clientY - rectParent.top) / rectParent.height) * 100;
             x = Math.max(2, Math.min(98, x));
             y = Math.max(2, Math.min(98, y));
             const d = decorations.find(dd => dd.id === id);
             if (d) { d.x = x; d.y = y; }
-            renderDecorations();
+            el.style.left = x + '%';
+            el.style.top = y + '%';
         }
-        function endDrag() {
+        function endDrag(e) {
+            if (!dragState) return;
+            const { el } = dragState;
+            el.classList.remove('dragging');
+            el.removeEventListener('pointermove', onDrag);
+            el.removeEventListener('pointerup', endDrag);
+            el.removeEventListener('pointercancel', endDrag);
             dragState = null;
-            document.removeEventListener('pointermove', onDrag);
-            document.removeEventListener('pointerup', endDrag);
+            renderDecorations(); // reconstruye limpio una sola vez, al soltar
         }
 
         // =====================================================
@@ -909,6 +976,31 @@
             document.getElementById('voiceNotePreview').classList.add('hidden');
             document.getElementById('deleteVoiceNote').classList.add('hidden');
             document.getElementById('recordStatus').innerText = 'Máx. 15 segundos';
+        }
+
+        // Reproductor custom de la nota de voz para el receptor: nunca se reproduce sola,
+        // solo responde a un toque explícito del botón.
+        function setupVoiceNoteAudioEvents() {
+            const audio = document.getElementById('voiceNoteReceiverAudio');
+            if (!audio) return;
+            audio.addEventListener('play', () => {
+                document.getElementById('voiceNotePlayIcon').classList.add('hidden');
+                document.getElementById('voiceNotePauseIcon').classList.remove('hidden');
+                document.getElementById('voiceNoteStatusText').innerText = 'Reproduciendo...';
+            });
+            audio.addEventListener('pause', () => {
+                document.getElementById('voiceNotePlayIcon').classList.remove('hidden');
+                document.getElementById('voiceNotePauseIcon').classList.add('hidden');
+                document.getElementById('voiceNoteStatusText').innerText = 'Toca para escuchar';
+            });
+            audio.addEventListener('ended', () => {
+                document.getElementById('voiceNoteStatusText').innerText = 'Toca para escuchar de nuevo';
+            });
+        }
+        function toggleVoiceNotePlayback() {
+            const audio = document.getElementById('voiceNoteReceiverAudio');
+            if (!audio || !audio.src) return;
+            if (audio.paused) audio.play(); else audio.pause();
         }
 
         // =====================================================
