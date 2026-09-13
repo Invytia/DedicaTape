@@ -97,32 +97,33 @@
         .palette-btn { width: 56px; height: 30px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
 
         /* Área de toque generosa: el contenido visual va centrado dentro de un padding invisible más grande,
-           así en celular es mucho más fácil agarrar la decoración con el dedo. */
+           así en celular es mucho más fácil tocar la decoración para seleccionarla. */
         .decoration-item {
-            touch-action: none;
             -webkit-user-select: none; user-select: none;
             padding: 14px;
             margin: -14px;
+            cursor: pointer;
         }
-        .decoration-item.dragging { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)); }
-        .decoration-item, .decoration-item * { touch-action: none; }
+        .decoration-item.selected { outline: 3px solid #f43f5e; outline-offset: 2px; border-radius: 10px; }
 
-        /* Se activa en <body> mientras se arrastra una decoración, para que el navegador
-           no interprete el gesto como scroll/rebote de la página completa en celular. */
-        body.dragging-lock { overflow: hidden; overscroll-behavior: none; }
+        /* Se activa en <body> mientras estamos en la pestaña "Casete" del editor en celular,
+           para que nada del fondo se mueva mientras se decora. */
+        body.no-scroll { overflow: hidden; overscroll-behavior: none; }
 
-        /* --- Caja del casete: estado abierto (edición) vs cerrado (listo / antes de abrir el regalo) --- */
+        /* --- Caja del casete: estado abierto (edición / vista previa) vs cerrado (antes de abrir el regalo) --- */
         #caseAssembly #cassetteAssembly {
             transition: transform 0.7s cubic-bezier(.34,1.56,.64,1), opacity 0.45s ease;
         }
         #caseAssembly #caseSleeve {
             transition: transform 0.7s cubic-bezier(.34,1.56,.64,1), box-shadow 0.5s ease;
         }
+        /* La caja va claramente más grande y desplazada que el casete, para que se note de verdad
+           que ahí está la foto de portada (antes casi no se alcanzaba a ver). */
         #caseAssembly.case-open #cassetteAssembly { transform: translateY(0) scale(1); opacity: 1; }
-        #caseAssembly.case-open #caseSleeve { transform: rotate(-4deg) translateY(14px) scale(1); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        #caseAssembly.case-open #caseSleeve { transform: translate(7%, 11%) rotate(-6deg) scale(1.12); box-shadow: 0 16px 26px rgba(0,0,0,0.3); }
 
         #caseAssembly.case-closed #cassetteAssembly { transform: translateY(26px) scale(0.8); opacity: 0; pointer-events: none; }
-        #caseAssembly.case-closed #caseSleeve { transform: rotate(0deg) translateY(0) scale(1.04); box-shadow: 0 14px 30px rgba(0,0,0,0.35); }
+        #caseAssembly.case-closed #caseSleeve { transform: rotate(0deg) translate(0,0) scale(1.04); box-shadow: 0 14px 30px rgba(0,0,0,0.35); }
 
         .mobile-tab-btn.active-tab { background-color: black; color: white; }
     </style>
@@ -130,9 +131,11 @@
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
 
     <div id="pageWrap" class="w-full flex flex-col items-center">
-        <div class="max-w-6xl w-full px-4 sm:px-8 pt-3 pb-2 flex items-center justify-center lg:justify-start gap-2">
-            <span class="text-2xl">📼</span>
-            <span class="font-extrabold text-xl tracking-tight text-neutral-800">Dedica<span class="text-rose-500">Tape</span></span>
+        <div class="w-full bg-white/95 backdrop-blur-sm shadow-sm border-b border-neutral-200/70 sticky top-0 z-40">
+            <div class="max-w-6xl w-full mx-auto px-4 sm:px-8 py-3 flex items-center justify-center lg:justify-start gap-2">
+                <span class="text-2xl">📼</span>
+                <span class="font-extrabold text-xl tracking-tight text-neutral-800">Dedica<span class="text-rose-500">Tape</span></span>
+            </div>
         </div>
 
     <img src="assets/textura.jpg" class="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none opacity-90" alt="Fondo" onerror="this.style.display='none'">
@@ -207,7 +210,7 @@
                         <!-- LADO A -->
                         <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
                             <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">A</div>
-
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 text-[6px] plastic-engrave tracking-[0.15em] z-10">DEDICATAPE</div>
                             <div class="absolute top-2 right-6 text-[8px] plastic-engrave tracking-widest z-10">STEREO</div>
                             <div class="absolute bottom-16 left-3 text-[7px] plastic-engrave tracking-widest z-10">TYPE I</div>
                             <div class="absolute bottom-16 right-3 text-[7px] plastic-engrave tracking-widest z-10">NR [ ]</div>
@@ -352,6 +355,13 @@
                 </div>
             </div>
 
+            <!-- CTA para el destinatario: lo lleva al configurador para crear el suyo -->
+            <div id="makeYourOwnWrap" class="hidden mb-6">
+                <button type="button" onclick="window.location.href = window.location.pathname" class="w-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-extrabold py-4 rounded-xl shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all">
+                    🎁 Quiero hacer el mío
+                </button>
+            </div>
+
             <!-- FORMULARIO DE CREACIÓN -->
             <div id="formZone" class="space-y-7">
                 <div class="space-y-4 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
@@ -441,7 +451,7 @@
 
                 <div class="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
                     <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">4. Decora tu casete</h3>
-                    <p class="text-xs text-neutral-500">Toca para agregar. Para moverlo, <strong>mantén presionado</strong> sobre el casete un instante y luego arrastra. Usa el botón ✕ para quitar.</p>
+                    <p class="text-xs text-neutral-500">Toca para agregar. Luego tócalo sobre el casete y muévelo con las flechas que aparecen.</p>
                     <div>
                         <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Washi tape</p>
                         <div class="flex gap-2 flex-wrap">
@@ -506,6 +516,25 @@
         <button id="tab-form" class="mobile-tab-btn px-4 py-2 rounded-full text-sm font-bold transition" onclick="setMobileView('form')">📝 Detalles</button>
     </div>
 
+    <!-- CRUCETA: controles para mover la decoración seleccionada, sin arrastre ni conflicto de scroll -->
+    <div id="decorationControls" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-white/95 backdrop-blur border border-neutral-200 rounded-2xl shadow-xl p-3 flex items-center gap-4">
+        <div class="grid grid-cols-3 grid-rows-3 gap-1 w-28 h-28">
+            <div></div>
+            <button id="dpadUp" class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 rounded-lg flex items-center justify-center text-lg font-bold select-none">▲</button>
+            <div></div>
+            <button id="dpadLeft" class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 rounded-lg flex items-center justify-center text-lg font-bold select-none">◀</button>
+            <div class="flex items-center justify-center text-neutral-300 text-xs">✥</div>
+            <button id="dpadRight" class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 rounded-lg flex items-center justify-center text-lg font-bold select-none">▶</button>
+            <div></div>
+            <button id="dpadDown" class="bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 rounded-lg flex items-center justify-center text-lg font-bold select-none">▼</button>
+            <div></div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <button type="button" onclick="removeSelectedDecoration()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap">✕ Quitar</button>
+            <button type="button" onclick="deselectDecoration()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap">✓ Listo</button>
+        </div>
+    </div>
+
     <script>
         let currentColor = 'bg-[#Facc15]';
         let songs = []; 
@@ -546,6 +575,7 @@
             applyMobileView();
             mq.addEventListener('change', applyMobileView);
             setupVoiceNoteAudioEvents();
+            initDecorationControls();
 
             const urlParams = new URLSearchParams(window.location.search);
             const mixtapeId = urlParams.get('m');
@@ -556,8 +586,9 @@
                 return;
             }
 
-            // Flujo de receptor: el mixtape se revela recién cuando toca "Abrir mi mixtape".
+            // Flujo de receptor: vista única (sin pestañas), y el mixtape se revela al tocar "Abrir mi mixtape".
             closeOnboarding(true); // sin animación, no aplica mood a un mixtape recibido
+            enterHeroView();
             setCaseState('closed'); // la caja arranca cerrada: el casete "sale" al tocar Abrir
 
             document.getElementById('loadingScreen').classList.remove('hidden');
@@ -636,6 +667,7 @@
                             ? `${deTexto} te preparó un mixtape`
                             : 'Alguien te preparó un mixtape';
                         document.getElementById('giftTitlePreview').innerText = `"${data.titulo}"`;
+                        document.getElementById('makeYourOwnWrap').classList.remove('hidden');
                         document.getElementById('loadingScreen').classList.add('hidden');
                         const gr = document.getElementById('giftReveal');
                         gr.classList.remove('hidden');
@@ -721,26 +753,36 @@
         }
 
         // =====================================================
-        // VISTA MOBILE (pestañas)
+        // VISTA MOBILE (pestañas durante la edición; vista única en envío/receptor)
         // =====================================================
+        let heroMode = false; // true = vista de "enviar" o de receptor: todo en una sola pantalla, sin pestañas
+
         function applyMobileView() {
             const cp = document.getElementById('cassettePanel');
             const cr = document.getElementById('creatorPanel');
             const bar = document.getElementById('mobileTabBar');
-            if (mq.matches) {
+
+            if (mq.matches || heroMode) {
                 cp.style.display = '';
                 cr.style.display = '';
-                bar.style.display = 'none';
+                if (bar) bar.style.display = 'none';
+                document.body.classList.remove('no-scroll');
                 return;
             }
             bar.style.display = 'flex';
             cp.style.display = (mobileView === 'cassette') ? '' : 'none';
             cr.style.display = (mobileView === 'form') ? '' : 'none';
+            // Mientras se está en la pestaña del casete (donde se decora), se bloquea el scroll del fondo.
+            document.body.classList.toggle('no-scroll', mobileView === 'cassette');
             document.getElementById('tab-cassette').classList.toggle('active-tab', mobileView === 'cassette');
             document.getElementById('tab-form').classList.toggle('active-tab', mobileView === 'form');
         }
         function setMobileView(view) {
             mobileView = view;
+            applyMobileView();
+        }
+        function enterHeroView() {
+            heroMode = true;
             applyMobileView();
         }
 
@@ -879,23 +921,77 @@
         });
 
         // =====================================================
-        // DECORACIONES: stickers y washi tape arrastrables
+        // DECORACIONES: stickers y washi tape (mover con la cruceta, sin arrastre)
         // =====================================================
+        let selectedDecorationId = null;
+
         function addDecoration(type, variant) {
             if (decorations.length >= 12) return alert('Ya agregaste suficientes decoraciones 🙂');
+            const id = 'd' + Date.now() + Math.floor(Math.random() * 1000);
             decorations.push({
-                id: 'd' + Date.now() + Math.floor(Math.random() * 1000),
-                type, variant,
+                id, type, variant,
                 x: 42 + Math.random() * 16,
                 y: 42 + Math.random() * 16,
                 rot: Math.floor(Math.random() * 30 - 15)
             });
-            renderDecorations();
+            selectDecoration(id); // se selecciona de una vez para poder acomodarla con la cruceta
         }
 
         function removeDecoration(id) {
             decorations = decorations.filter(d => d.id !== id);
+            if (selectedDecorationId === id) selectedDecorationId = null;
             renderDecorations();
+        }
+
+        function selectDecoration(id) {
+            selectedDecorationId = id;
+            document.getElementById('decorationControls').classList.remove('hidden');
+            renderDecorations();
+        }
+        function deselectDecoration() {
+            selectedDecorationId = null;
+            document.getElementById('decorationControls').classList.add('hidden');
+            renderDecorations();
+        }
+        function removeSelectedDecoration() {
+            if (!selectedDecorationId) return;
+            removeDecoration(selectedDecorationId);
+            document.getElementById('decorationControls').classList.add('hidden');
+        }
+        function moveSelectedDecoration(dir) {
+            if (!selectedDecorationId) return;
+            const d = decorations.find(dd => dd.id === selectedDecorationId);
+            if (!d) return;
+            const STEP = 2.5; // % del casete por pulsación
+            if (dir === 'up') d.y = Math.max(4, d.y - STEP);
+            if (dir === 'down') d.y = Math.min(96, d.y + STEP);
+            if (dir === 'left') d.x = Math.max(4, d.x - STEP);
+            if (dir === 'right') d.x = Math.min(96, d.x + STEP);
+            renderDecorations();
+        }
+
+        // Mantener presionada una flecha repite el movimiento; un toque simple mueve un paso.
+        function bindDpadButton(elId, dir) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            let repeatTimer = null;
+            const start = (e) => {
+                e.preventDefault();
+                moveSelectedDecoration(dir);
+                clearInterval(repeatTimer);
+                repeatTimer = setInterval(() => moveSelectedDecoration(dir), 120);
+            };
+            const stop = () => { clearInterval(repeatTimer); repeatTimer = null; };
+            el.addEventListener('pointerdown', start);
+            el.addEventListener('pointerup', stop);
+            el.addEventListener('pointerleave', stop);
+            el.addEventListener('pointercancel', stop);
+        }
+        function initDecorationControls() {
+            bindDpadButton('dpadUp', 'up');
+            bindDpadButton('dpadDown', 'down');
+            bindDpadButton('dpadLeft', 'left');
+            bindDpadButton('dpadRight', 'right');
         }
 
         function renderDecorations() {
@@ -903,11 +999,13 @@
             layer.innerHTML = '';
             decorations.forEach(d => {
                 const el = document.createElement('div');
-                el.className = 'decoration-item absolute select-none' + (decorationEditable ? ' cursor-grab' : '');
+                const isSelected = decorationEditable && d.id === selectedDecorationId;
+                el.className = 'decoration-item absolute select-none' + (isSelected ? ' selected' : '');
                 el.style.left = d.x + '%';
                 el.style.top = d.y + '%';
                 el.style.transform = `translate(-50%, -50%) rotate(${d.rot}deg)`;
                 el.style.pointerEvents = decorationEditable ? 'auto' : 'none';
+                el.style.zIndex = isSelected ? '39' : '38';
                 el.dataset.id = d.id;
 
                 const content = document.createElement('div');
@@ -920,89 +1018,10 @@
                 el.appendChild(content);
 
                 if (decorationEditable) {
-                    const delBtn = document.createElement('button');
-                    delBtn.type = 'button';
-                    delBtn.innerText = '✕';
-                    delBtn.className = 'absolute w-6 h-6 bg-red-500 text-white rounded-full text-[11px] leading-none flex items-center justify-center shadow z-10';
-                    delBtn.style.top = '2px';
-                    delBtn.style.right = '2px';
-                    delBtn.style.pointerEvents = 'auto';
-                    delBtn.addEventListener('pointerdown', (ev) => ev.stopPropagation());
-                    delBtn.addEventListener('click', (ev) => { ev.stopPropagation(); removeDecoration(d.id); });
-                    el.appendChild(delBtn);
-                    el.addEventListener('pointerdown', startDrag);
+                    el.addEventListener('click', () => selectDecoration(d.id));
                 }
                 layer.appendChild(el);
             });
-        }
-
-        // Arrastre de decoraciones con "long-press": si el dedo se queda quieto ~250ms se activa
-        // el arrastre (y ahí sí se bloquea el scroll); si se mueve antes de eso, se cancela y se
-        // deja que la página haga scroll normal. Esto evita el conflicto scroll-vs-arrastre en celular.
-        const LONG_PRESS_MS = 250;
-        const MOVE_CANCEL_PX = 10;
-        let dragState = null;
-
-        function startDrag(e) {
-            const el = e.currentTarget;
-            const id = el.dataset.id;
-            const startX = e.clientX, startY = e.clientY;
-            const pointerId = e.pointerId;
-            let longPressTimer = null;
-
-            function cleanupPending() {
-                clearTimeout(longPressTimer);
-                el.removeEventListener('pointermove', pendingMove);
-                el.removeEventListener('pointerup', pendingCancel);
-                el.removeEventListener('pointercancel', pendingCancel);
-            }
-            function pendingMove(ev) {
-                const dx = ev.clientX - startX, dy = ev.clientY - startY;
-                if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) cleanupPending(); // se movió: era scroll, no drag
-            }
-            function pendingCancel() { cleanupPending(); }
-
-            function activateDrag() {
-                cleanupPending();
-                const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
-                dragState = { id, rectParent, el };
-                el.classList.add('dragging');
-                el.style.zIndex = '60';
-                document.body.classList.add('dragging-lock'); // recién AHORA se bloquea el scroll
-                try { el.setPointerCapture(pointerId); } catch (err) {}
-                el.addEventListener('pointermove', onDrag, { passive: false });
-                el.addEventListener('pointerup', endDrag);
-                el.addEventListener('pointercancel', endDrag);
-            }
-
-            longPressTimer = setTimeout(activateDrag, LONG_PRESS_MS);
-            el.addEventListener('pointermove', pendingMove);
-            el.addEventListener('pointerup', pendingCancel);
-            el.addEventListener('pointercancel', pendingCancel);
-        }
-        function onDrag(e) {
-            if (!dragState) return;
-            e.preventDefault();
-            const { rectParent, id, el } = dragState;
-            let x = ((e.clientX - rectParent.left) / rectParent.width) * 100;
-            let y = ((e.clientY - rectParent.top) / rectParent.height) * 100;
-            x = Math.max(2, Math.min(98, x));
-            y = Math.max(2, Math.min(98, y));
-            const d = decorations.find(dd => dd.id === id);
-            if (d) { d.x = x; d.y = y; }
-            el.style.left = x + '%';
-            el.style.top = y + '%';
-        }
-        function endDrag(e) {
-            if (!dragState) return;
-            const { el } = dragState;
-            el.classList.remove('dragging');
-            el.removeEventListener('pointermove', onDrag);
-            el.removeEventListener('pointerup', endDrag);
-            el.removeEventListener('pointercancel', endDrag);
-            document.body.classList.remove('dragging-lock');
-            dragState = null;
-            renderDecorations(); // reconstruye limpio una sola vez, al soltar
         }
 
         // =====================================================
@@ -1421,18 +1440,20 @@
                     document.getElementById('playerContainerGlobal').classList.remove('hidden');
                     
                     decorationEditable = false;
+                    selectedDecorationId = null;
+                    document.getElementById('decorationControls').classList.add('hidden');
                     renderDecorations();
 
                     initYouTubePlayer(songs);
-                    if(isFlipped) flipCassette(); 
-                    setMobileView('cassette');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if(isFlipped) flipCassette();
 
-                    // El casete "se guarda" en la caja, como gesto de que ya quedó listo para enviar.
-                    setTimeout(() => {
-                        setCaseState('closed');
-                        document.getElementById('caseStatusCaption').classList.remove('hidden');
-                    }, 900);
+                    // Vista completa de envío: se ve el casete tal cual lo verá el destinatario,
+                    // sin pestañas, junto con el enlace para compartir.
+                    enterHeroView();
+                    setCaseState('open');
+                    document.getElementById('caseStatusCaption').innerText = '👀 Así lo verá quien lo reciba';
+                    document.getElementById('caseStatusCaption').classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     // Se muestra el motivo real que devuelve el backend (ej. "foto demasiado pesada"),
                     // en vez de un mensaje genérico que no ayuda a diagnosticar.
