@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crea tu Mixtape</title>
+    <title>DedicaTape — Crea tu Mixtape</title>
 
     <!-- Open Graph / preview social. og:image es estático porque generar una miniatura
          distinta por cada mixtape requiere un servicio de renderizado server-side
          (ver nota en el chat). Las etiquetas se actualizan por JS al abrir un mixtape. -->
-    <meta id="ogTitle" property="og:title" content="Te hice un mixtape 📼">
-    <meta id="ogDesc" property="og:description" content="Alguien armó una cinta especial para ti. Dale play.">
+    <meta id="ogTitle" property="og:title" content="Te hice un mixtape con DedicaTape 📼">
+    <meta id="ogDesc" property="og:description" content="Alguien armó una cinta especial para ti en DedicaTape. Dale play.">
     <meta id="ogImage" property="og:image" content="https://placehold.co/1200x630/facc15/1a1a1a?text=Mixtape+%F0%9F%93%BC">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
@@ -111,10 +111,29 @@
            no interprete el gesto como scroll/rebote de la página completa en celular. */
         body.dragging-lock { overflow: hidden; overscroll-behavior: none; }
 
+        /* --- Caja del casete: estado abierto (edición) vs cerrado (listo / antes de abrir el regalo) --- */
+        #caseAssembly #cassetteAssembly {
+            transition: transform 0.7s cubic-bezier(.34,1.56,.64,1), opacity 0.45s ease;
+        }
+        #caseAssembly #caseSleeve {
+            transition: transform 0.7s cubic-bezier(.34,1.56,.64,1), box-shadow 0.5s ease;
+        }
+        #caseAssembly.case-open #cassetteAssembly { transform: translateY(0) scale(1); opacity: 1; }
+        #caseAssembly.case-open #caseSleeve { transform: rotate(-4deg) translateY(14px) scale(1); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        #caseAssembly.case-closed #cassetteAssembly { transform: translateY(26px) scale(0.8); opacity: 0; pointer-events: none; }
+        #caseAssembly.case-closed #caseSleeve { transform: rotate(0deg) translateY(0) scale(1.04); box-shadow: 0 14px 30px rgba(0,0,0,0.35); }
+
         .mobile-tab-btn.active-tab { background-color: black; color: white; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-8 text-neutral-800 relative">
+
+    <div id="pageWrap" class="w-full flex flex-col items-center">
+        <div class="max-w-6xl w-full px-4 sm:px-8 pt-3 pb-2 flex items-center justify-center lg:justify-start gap-2">
+            <span class="text-2xl">📼</span>
+            <span class="font-extrabold text-xl tracking-tight text-neutral-800">Dedica<span class="text-rose-500">Tape</span></span>
+        </div>
 
     <img src="assets/textura.jpg" class="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none opacity-90" alt="Fondo" onerror="this.style.display='none'">
 
@@ -157,7 +176,7 @@
     <div id="giftReveal" class="hidden fixed inset-0 z-[150] bg-gradient-to-br from-amber-100 via-rose-100 to-purple-100 flex items-center justify-center p-6 text-center opacity-0 transition-opacity duration-700">
         <div>
             <div class="text-6xl mb-4">🎁</div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-neutral-900 mb-2">Alguien te preparó un mixtape</h2>
+            <h2 id="giftHeading" class="text-2xl sm:text-3xl font-extrabold text-neutral-900 mb-2">Alguien te preparó un mixtape</h2>
             <p id="giftTitlePreview" class="font-handwriting text-2xl text-neutral-700 mb-6">"..."</p>
             <button onclick="openGift()" class="bg-black text-white font-extrabold px-8 py-4 rounded-full shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all">Abrir mi mixtape 🎧</button>
         </div>
@@ -167,12 +186,18 @@
         
         <!-- PANEL DERECHO: CASETE -->
         <div id="cassettePanel" class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center lg:sticky lg:top-0 z-30 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000">
-            <div class="relative w-full max-w-[450px] flex flex-col items-center">
+            <div id="caseAssembly" class="case-open relative w-full max-w-[450px] flex flex-col items-center">
 
-                <!-- Carcasa / sleeve con la foto (detrás del casete, se asoma en los bordes) -->
-                <div id="caseSleeve" class="hidden absolute top-8 w-[92%] aspect-[16/10] rounded-xl bg-cover bg-center shadow-xl border-4 border-white z-0" style="transform: rotate(-4deg) translateY(14px);"></div>
+                <!-- Carcasa / caja del casete: siempre visible. Muestra la foto subida como portada,
+                     o un look genérico de marca si no hay foto. El casete "sale" de aquí al abrir el regalo. -->
+                <div id="caseSleeve" class="absolute top-8 w-[92%] aspect-[16/10] rounded-xl bg-cover bg-center shadow-xl border-4 border-white z-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-neutral-700 to-neutral-900">
+                    <div id="caseSleeveDefault" class="text-center px-4 pointer-events-none">
+                        <div class="text-4xl mb-1">📼</div>
+                        <div class="font-extrabold text-white text-lg drop-shadow">Dedica<span class="text-rose-300">Tape</span></div>
+                    </div>
+                </div>
 
-                <div class="z-10 text-center w-full">
+                <div id="cassetteAssembly" class="z-10 text-center w-full">
                     <button onclick="flipCassette()" class="mb-4 text-xs font-bold bg-neutral-800/80 text-white px-4 py-2 rounded-full hover:bg-black transition-colors backdrop-blur flex items-center justify-center mx-auto gap-2 shadow-md">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-10.87l5.25 5.3"/></svg>
                         <span id="flipText">Ver Lado B (Canciones)</span>
@@ -182,6 +207,7 @@
                         <!-- LADO A -->
                         <div id="cassetteFront" class="absolute inset-0 w-full h-full bg-[#Facc15] rounded-xl border-2 border-neutral-800 shadow-[inset_0px_0px_20px_rgba(255,255,255,0.4),_inset_0px_-5px_15px_rgba(0,0,0,0.3),_10px_15px_25px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden transition-colors duration-500 backface-hidden" style="transform: rotateY(0deg); -webkit-transform: rotateY(0deg);">
                             <div class="absolute top-2 left-6 text-[10px] plastic-engrave tracking-widest z-10">A</div>
+
                             <div class="absolute top-2 right-6 text-[8px] plastic-engrave tracking-widest z-10">STEREO</div>
                             <div class="absolute bottom-16 left-3 text-[7px] plastic-engrave tracking-widest z-10">TYPE I</div>
                             <div class="absolute bottom-16 right-3 text-[7px] plastic-engrave tracking-widest z-10">NR [ ]</div>
@@ -250,6 +276,8 @@
                         </div>
                     </div>
                 </div>
+
+                <p id="caseStatusCaption" class="hidden mt-4 text-sm font-semibold text-neutral-700 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm z-10">🎁 Tu mixtape está listo para enviar</p>
             </div>
         </div>
 
@@ -262,6 +290,10 @@
                 <h3 class="text-green-800 font-bold mb-2 text-xl">¡Cinta grabada con éxito! 📼</h3>
                 <p class="text-sm text-green-700 mb-4">Envía este enlace a esa persona especial:</p>
                 <input type="text" id="linkOutput" readonly class="w-full border border-green-300 rounded-lg p-3 text-center text-sm mb-4 outline-none bg-white font-semibold shadow-inner text-neutral-600">
+                <a id="whatsappShareBtn" href="#" target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold py-3 rounded-lg hover:brightness-95 transition shadow-md mb-3">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.6.8-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.1.1-.3 0-.4-.1-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3 1 2.6 1.1 2.8.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.5-.3Z"/></svg>
+                    Enviar por WhatsApp
+                </a>
                 <button onclick="copyLink()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-4">Copiar Enlace</button>
                 <button onclick="resetForm()" class="block w-full text-sm text-neutral-500 hover:text-neutral-800 underline transition">Crear otra cinta</button>
             </div>
@@ -271,6 +303,7 @@
                 <div class="absolute -top-2 -left-1 text-6xl text-rose-200 font-serif select-none pointer-events-none leading-none">❝</div>
                 <p class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-3 relative">💌 Una nota para ti</p>
                 <p id="receiverNote" class="text-neutral-800 text-xl leading-relaxed font-cursive relative">...</p>
+                <p id="receiverSignature" class="hidden text-right text-neutral-600 font-cursive text-lg mt-2 relative">— ...</p>
             </div>
 
             <!-- NOTA DE VOZ (vista del receptor): botón custom, no se reproduce sola -->
@@ -328,14 +361,18 @@
                         <input type="text" id="titulo" onkeyup="updatePreview()" placeholder="Ej. Mix para el viaje" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition" maxlength="25">
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">De: (tu nombre, opcional)</label>
+                        <input type="text" id="deNombre" placeholder="Ej. Ana" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition" maxlength="20">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota oculta</label>
                         <textarea id="mensaje" placeholder="Escribe un mensaje para cuando abran el casete..." rows="2" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition resize-none"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota de voz (opcional, máx. 15s)</label>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Nota de voz (opcional, máx. 10s)</label>
                         <div class="flex items-center gap-3">
                             <button type="button" id="recordBtn" onclick="toggleRecording()" class="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-neutral-800 transition text-sm">🎙️ Grabar nota</button>
-                            <span id="recordStatus" class="text-xs text-neutral-500">Máx. 15 segundos</span>
+                            <span id="recordStatus" class="text-xs text-neutral-500">Máx. 10 segundos</span>
                         </div>
                         <audio id="voiceNotePreview" controls class="hidden w-full mt-2"></audio>
                         <button type="button" id="deleteVoiceNote" onclick="deleteVoiceNote()" class="hidden text-xs text-red-500 hover:text-red-700 mt-1 underline">Eliminar nota</button>
@@ -393,7 +430,7 @@
                     </div>
 
                     <div class="pt-2">
-                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Foto para la carcasa (no se ve en el casete, se asoma detrás)</label>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Foto para la caja del casete (portada, no se ve en el casete en sí)</label>
                         <input type="file" accept="image/*" id="casePhotoInput" onchange="handleCasePhotoUpload(event)" class="w-full text-sm border border-neutral-300/80 rounded-xl p-2 bg-white/90">
                         <div id="casePhotoPreviewWrap" class="hidden mt-2 flex items-center gap-3">
                             <img id="casePhotoPreviewImg" class="w-14 h-14 object-cover rounded-lg border border-neutral-300">
@@ -404,7 +441,7 @@
 
                 <div class="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
                     <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">4. Decora tu casete</h3>
-                    <p class="text-xs text-neutral-500">Toca para agregar, luego arrastra sobre el casete. Usa el botón ✕ para quitar.</p>
+                    <p class="text-xs text-neutral-500">Toca para agregar. Para moverlo, <strong>mantén presionado</strong> sobre el casete un instante y luego arrastra. Usa el botón ✕ para quitar.</p>
                     <div>
                         <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Washi tape</p>
                         <div class="flex gap-2 flex-wrap">
@@ -430,6 +467,35 @@
                 <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
                     Grabar Mixtape
                 </button>
+                <p class="text-center text-[11px] text-neutral-400 mt-3">
+                    Al continuar, aceptas nuestros <button type="button" onclick="openLegalModal()" class="underline hover:text-neutral-700">Términos y Aviso de Privacidad</button>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl w-full px-4 sm:px-8 py-3 flex justify-center">
+        <button type="button" onclick="openLegalModal()" class="text-xs text-neutral-500 hover:text-neutral-800 underline">Términos y Aviso de Privacidad</button>
+    </div>
+    </div><!-- /pageWrap -->
+
+    <!-- MODAL: Términos y Aviso de Privacidad -->
+    <div id="legalModal" class="hidden fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 relative shadow-2xl">
+            <button type="button" onclick="closeLegalModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-800 text-xl leading-none">✕</button>
+            <h2 class="text-2xl font-extrabold mb-1 text-neutral-900">Términos de Uso y Aviso de Privacidad</h2>
+            <p class="text-xs text-neutral-400 mb-6">DedicaTape · Última actualización: 2026</p>
+            <div class="space-y-4 text-sm leading-relaxed text-neutral-700">
+                <p><strong>1. Qué es DedicaTape.</strong> DedicaTape es una herramienta para crear y compartir "casetes" digitales personalizados (canciones de YouTube, una nota de texto, una nota de voz, una foto y decoraciones) mediante un enlace único.</p>
+                <p><strong>2. Qué información recopilamos.</strong> Cuando creas un mixtape, guardamos: el título, la nota de texto, tu nombre (si lo indicas), los enlaces/títulos de las canciones elegidas, la foto que subas para la carcasa, y la nota de voz que grabes. Esta información se almacena para poder mostrarla a quien abra tu enlace.</p>
+                <p><strong>3. Cómo se usa esta información.</strong> Solo se usa para generar y mostrar el mixtape a través del enlace que tú compartes. No vendemos ni compartimos este contenido con terceros con fines publicitarios.</p>
+                <p><strong>4. Contenido de terceros.</strong> Al agregar canciones, DedicaTape reproduce contenido de YouTube dentro de la página, sujeto a los <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" class="underline">Términos de Servicio de YouTube</a> y a la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="underline">Política de Privacidad de Google</a>.</p>
+                <p><strong>5. Responsabilidad sobre el contenido.</strong> Tú eres responsable del contenido que subes (fotos, notas, audio). Está prohibido subir contenido ilegal, difamatorio, que viole derechos de terceros, o que sea ofensivo/abusivo. Nos reservamos el derecho de eliminar cualquier mixtape que incumpla esto.</p>
+                <p><strong>6. Enlaces y acceso.</strong> Cualquier persona que tenga el enlace de un mixtape puede verlo. No compartas enlaces de mixtapes con contenido sensible en lugares públicos.</p>
+                <p><strong>7. Eliminación de datos.</strong> Puedes solicitar la eliminación de un mixtape y su contenido escribiendo a <span class="font-semibold">[tu correo de contacto aquí]</span>.</p>
+                <p><strong>8. Menores de edad.</strong> DedicaTape no está dirigido a menores de 13 años. Si eres menor de edad, usa este servicio con supervisión de un adulto.</p>
+                <p><strong>9. Cambios.</strong> Este aviso puede actualizarse; los cambios importantes se reflejarán en esta misma pantalla.</p>
+                <p class="text-xs text-neutral-400 pt-2 border-t border-neutral-200">Este texto es una plantilla general y no constituye asesoría legal. Antes de operar DedicaTape de forma comercial, se recomienda que un abogado la revise y adapte a la legislación aplicable (en México, entre otras, la LFPDPPP).</p>
             </div>
         </div>
     </div>
@@ -492,6 +558,7 @@
 
             // Flujo de receptor: el mixtape se revela recién cuando toca "Abrir mi mixtape".
             closeOnboarding(true); // sin animación, no aplica mood a un mixtape recibido
+            setCaseState('closed'); // la caja arranca cerrada: el casete "sale" al tocar Abrir
 
             document.getElementById('loadingScreen').classList.remove('hidden');
                 document.getElementById('creatorPanel').style.display = 'none'; 
@@ -535,6 +602,7 @@
                         }
 
                         // Preview social (best-effort, ver nota sobre og:image dinámico)
+                        const deTexto = data.de ? data.de.trim() : '';
                         document.getElementById('ogTitle').setAttribute('content', `${data.titulo} - un mixtape para ti 📼`);
                         document.getElementById('ogDesc').setAttribute('content', data.mensaje ? 'Alguien te dejó una nota junto con su mixtape 💌' : 'Alguien armó una cinta especial para ti. Dale play.');
                         document.title = `${data.titulo} 📼`;
@@ -542,6 +610,10 @@
                         if(data.mensaje) {
                             document.getElementById('receiverMessage').classList.remove('hidden');
                             document.getElementById('receiverNote').innerText = data.mensaje;
+                            if (deTexto) {
+                                document.getElementById('receiverSignature').innerText = `— ${deTexto}`;
+                                document.getElementById('receiverSignature').classList.remove('hidden');
+                            }
                             document.getElementById('creatorPanel').style.display = 'block';
                             document.getElementById('formZone').style.display = 'none';
                         } else {
@@ -557,7 +629,12 @@
 
                         // Encabezado personalizado + pantalla de regalo antes de revelar todo
                         document.getElementById('mainHeading').innerText = `${data.titulo} 📼`;
-                        document.getElementById('mainSubheading').innerText = 'Alguien armó esta cinta especial para ti. Ábrela cuando quieras.';
+                        document.getElementById('mainSubheading').innerText = deTexto
+                            ? `${deTexto} armó esta cinta especial para ti. Ábrela cuando quieras.`
+                            : 'Alguien armó esta cinta especial para ti. Ábrela cuando quieras.';
+                        document.getElementById('giftHeading').innerText = deTexto
+                            ? `${deTexto} te preparó un mixtape`
+                            : 'Alguien te preparó un mixtape';
                         document.getElementById('giftTitlePreview').innerText = `"${data.titulo}"`;
                         document.getElementById('loadingScreen').classList.add('hidden');
                         const gr = document.getElementById('giftReveal');
@@ -581,7 +658,10 @@
             gr.classList.add('opacity-0');
             setTimeout(() => gr.classList.add('hidden'), 700);
             document.getElementById('mainContainer').classList.remove('opacity-0');
+            document.getElementById('caseStatusCaption').classList.add('hidden');
             window.scrollTo({ top: 0, behavior: 'auto' });
+            // pequeña pausa antes de que el casete "salga" de la caja, para que se note el gesto
+            setTimeout(() => setCaseState('open'), 550);
         }
 
         const tag = document.createElement('script');
@@ -628,6 +708,16 @@
             if (instant) { ob.classList.add('hidden'); return; }
             ob.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => ob.classList.add('hidden'), 500);
+        }
+
+        // =====================================================
+        // MODAL LEGAL (Términos y Aviso de Privacidad)
+        // =====================================================
+        function openLegalModal() {
+            document.getElementById('legalModal').classList.remove('hidden');
+        }
+        function closeLegalModal() {
+            document.getElementById('legalModal').classList.add('hidden');
         }
 
         // =====================================================
@@ -846,23 +936,49 @@
             });
         }
 
-        // Arrastre de decoraciones: se mueve SOLO el elemento arrastrado (sin re-renderizar
-        // toda la capa en cada frame), y se usa pointer capture para que funcione fluido en
-        // pantallas táctiles aunque el dedo se salga un poco del elemento.
+        // Arrastre de decoraciones con "long-press": si el dedo se queda quieto ~250ms se activa
+        // el arrastre (y ahí sí se bloquea el scroll); si se mueve antes de eso, se cancela y se
+        // deja que la página haga scroll normal. Esto evita el conflicto scroll-vs-arrastre en celular.
+        const LONG_PRESS_MS = 250;
+        const MOVE_CANCEL_PX = 10;
         let dragState = null;
+
         function startDrag(e) {
-            e.preventDefault();
             const el = e.currentTarget;
             const id = el.dataset.id;
-            const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
-            dragState = { id, rectParent, el };
-            el.classList.add('dragging');
-            el.style.zIndex = '60';
-            document.body.classList.add('dragging-lock'); // bloquea el scroll de toda la página
-            try { el.setPointerCapture(e.pointerId); } catch (err) {}
-            el.addEventListener('pointermove', onDrag, { passive: false });
-            el.addEventListener('pointerup', endDrag);
-            el.addEventListener('pointercancel', endDrag);
+            const startX = e.clientX, startY = e.clientY;
+            const pointerId = e.pointerId;
+            let longPressTimer = null;
+
+            function cleanupPending() {
+                clearTimeout(longPressTimer);
+                el.removeEventListener('pointermove', pendingMove);
+                el.removeEventListener('pointerup', pendingCancel);
+                el.removeEventListener('pointercancel', pendingCancel);
+            }
+            function pendingMove(ev) {
+                const dx = ev.clientX - startX, dy = ev.clientY - startY;
+                if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) cleanupPending(); // se movió: era scroll, no drag
+            }
+            function pendingCancel() { cleanupPending(); }
+
+            function activateDrag() {
+                cleanupPending();
+                const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
+                dragState = { id, rectParent, el };
+                el.classList.add('dragging');
+                el.style.zIndex = '60';
+                document.body.classList.add('dragging-lock'); // recién AHORA se bloquea el scroll
+                try { el.setPointerCapture(pointerId); } catch (err) {}
+                el.addEventListener('pointermove', onDrag, { passive: false });
+                el.addEventListener('pointerup', endDrag);
+                el.addEventListener('pointercancel', endDrag);
+            }
+
+            longPressTimer = setTimeout(activateDrag, LONG_PRESS_MS);
+            el.addEventListener('pointermove', pendingMove);
+            el.addEventListener('pointerup', pendingCancel);
+            el.addEventListener('pointercancel', pendingCancel);
         }
         function onDrag(e) {
             if (!dragState) return;
@@ -892,6 +1008,8 @@
         // =====================================================
         // FOTO DE LA CARCASA
         // =====================================================
+        const MAX_ASSET_CHARS = 42000; // margen de seguridad bajo el límite de ~50,000 de una celda de Sheets
+
         function resizeImageFile(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -914,11 +1032,32 @@
             });
         }
 
+        // Comprime progresivamente hasta que el resultado quepa cómodo en una celda de Sheets.
+        async function resizeImageFileSmart(file) {
+            const attempts = [
+                { maxWidth: 380, quality: 0.6 },
+                { maxWidth: 320, quality: 0.5 },
+                { maxWidth: 260, quality: 0.45 },
+                { maxWidth: 200, quality: 0.4 },
+                { maxWidth: 160, quality: 0.35 }
+            ];
+            let dataUrl = null;
+            for (const cfg of attempts) {
+                dataUrl = await resizeImageFile(file, cfg.maxWidth, cfg.quality);
+                if (dataUrl.length <= MAX_ASSET_CHARS) return dataUrl;
+            }
+            return dataUrl;
+        }
+
         async function handleCasePhotoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
             try {
-                const dataUrl = await resizeImageFile(file, 500, 0.75);
+                const dataUrl = await resizeImageFileSmart(file);
+                if (dataUrl.length > MAX_ASSET_CHARS) {
+                    alert('Esta foto es muy pesada incluso comprimida. Intenta con otra imagen más simple.');
+                    return;
+                }
                 caseSheetPhoto = dataUrl;
                 document.getElementById('casePhotoPreviewImg').src = dataUrl;
                 document.getElementById('casePhotoPreviewWrap').classList.remove('hidden');
@@ -935,30 +1074,61 @@
         }
         function renderCasePhoto() {
             const el = document.getElementById('caseSleeve');
+            const fallback = document.getElementById('caseSleeveDefault');
             if (caseSheetPhoto) {
                 el.style.backgroundImage = `url(${caseSheetPhoto})`;
-                el.classList.remove('hidden');
+                fallback.classList.add('hidden');
             } else {
-                el.classList.add('hidden');
+                el.style.backgroundImage = '';
+                fallback.classList.remove('hidden');
             }
+        }
+
+        // Controla si la caja está "abierta" (casete afuera, editando) o "cerrada"
+        // (casete guardado adentro: recién grabado, o antes de que el destinatario abra el regalo).
+        function setCaseState(state) {
+            const wrap = document.getElementById('caseAssembly');
+            wrap.classList.remove('case-open', 'case-closed');
+            wrap.classList.add(state === 'closed' ? 'case-closed' : 'case-open');
         }
 
         // =====================================================
         // NOTA DE VOZ
         // =====================================================
+        const VOICE_NOTE_MAX_MS = 10000; // 10s a bitrate bajo cabe cómodo en una celda de Sheets
+
         async function toggleRecording() {
             const btn = document.getElementById('recordBtn');
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     recordedChunks = [];
-                    mediaRecorder = new MediaRecorder(stream);
+                    // Bitrate bajo (16kbps): calidad suficiente para una nota corta y un archivo
+                    // final varias veces más chico, para no chocar con el límite de la celda.
+                    let recorderOptions = { audioBitsPerSecond: 16000 };
+                    try {
+                        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                            recorderOptions.mimeType = 'audio/webm;codecs=opus';
+                        }
+                    } catch (e) {}
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, recorderOptions);
+                    } catch (e) {
+                        mediaRecorder = new MediaRecorder(stream); // fallback si el navegador rechaza las opciones
+                    }
                     mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
                     mediaRecorder.onstop = () => {
                         stream.getTracks().forEach(t => t.stop());
                         const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
                         const reader = new FileReader();
-                        reader.onload = () => { voiceNoteData = reader.result; };
+                        reader.onload = () => {
+                            voiceNoteData = reader.result;
+                            if (voiceNoteData.length > MAX_ASSET_CHARS) {
+                                alert('La nota quedó muy pesada. Intenta grabar algo un poco más corto.');
+                                voiceNoteData = null;
+                                document.getElementById('recordStatus').innerText = 'Máx. 10 segundos';
+                            }
+                        };
                         reader.readAsDataURL(blob);
                         const audioPrev = document.getElementById('voiceNotePreview');
                         audioPrev.src = URL.createObjectURL(blob);
@@ -969,8 +1139,8 @@
                     mediaRecorder.start();
                     isRecording = true;
                     btn.innerText = '⏹️ Detener';
-                    document.getElementById('recordStatus').innerText = 'Grabando... (máx 15s)';
-                    recordTimer = setTimeout(() => { if (isRecording) toggleRecording(); }, 15000);
+                    document.getElementById('recordStatus').innerText = 'Grabando... (máx 10s)';
+                    recordTimer = setTimeout(() => { if (isRecording) toggleRecording(); }, VOICE_NOTE_MAX_MS);
                 } catch (err) {
                     alert('No se pudo acceder al micrófono. Revisa los permisos del navegador.');
                 }
@@ -985,7 +1155,7 @@
             voiceNoteData = null;
             document.getElementById('voiceNotePreview').classList.add('hidden');
             document.getElementById('deleteVoiceNote').classList.add('hidden');
-            document.getElementById('recordStatus').innerText = 'Máx. 15 segundos';
+            document.getElementById('recordStatus').innerText = 'Máx. 10 segundos';
         }
 
         // Reproductor custom de la nota de voz para el receptor: nunca se reproduce sola,
@@ -1205,15 +1375,23 @@
 
             if (!titulo) return alert("Ponle un título a tu mixtape.");
             if (songs.length === 0) return alert("Agrega al menos una canción.");
+            if (caseSheetPhoto && caseSheetPhoto.length > MAX_ASSET_CHARS) {
+                return alert("La foto de la carcasa quedó muy pesada. Quítala y sube una más chica.");
+            }
+            if (voiceNoteData && voiceNoteData.length > MAX_ASSET_CHARS) {
+                return alert("La nota de voz quedó muy pesada. Bórrala y graba una más corta.");
+            }
 
             btn.innerText = "Grabando cinta...";
             btn.disabled = true;
 
             try {
+                const de = document.getElementById('deNombre').value;
                 const payload = {
                     action: 'save',
                     titulo: titulo,
                     mensaje: mensaje,
+                    de: de,
                     color: currentColor,
                     canciones: songs,
                     estilos: { font: document.getElementById('fontSelect').value, label: document.getElementById('labelSelect').value },
@@ -1232,7 +1410,11 @@
                 
                 if (data.success) {
                     const currentUrl = window.location.href.split('?')[0]; 
-                    document.getElementById('linkOutput').value = `${currentUrl}?m=${data.id}`;
+                    const shareUrl = `${currentUrl}?m=${data.id}`;
+                    document.getElementById('linkOutput').value = shareUrl;
+
+                    const waText = encodeURIComponent(`Te hice un mixtape en DedicaTape 📼🎧 ${shareUrl}`);
+                    document.getElementById('whatsappShareBtn').href = `https://wa.me/?text=${waText}`;
                     
                     document.getElementById('formZone').classList.add('hidden');
                     document.getElementById('successZone').classList.remove('hidden');
@@ -1245,11 +1427,21 @@
                     if(isFlipped) flipCassette(); 
                     setMobileView('cassette');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    // El casete "se guarda" en la caja, como gesto de que ya quedó listo para enviar.
+                    setTimeout(() => {
+                        setCaseState('closed');
+                        document.getElementById('caseStatusCaption').classList.remove('hidden');
+                    }, 900);
                 } else {
-                    alert("Error al guardar.");
+                    // Se muestra el motivo real que devuelve el backend (ej. "foto demasiado pesada"),
+                    // en vez de un mensaje genérico que no ayuda a diagnosticar.
+                    alert(data.error ? `No se pudo guardar: ${data.error}` : "Error al guardar.");
+                    console.error('[DedicaTape] Guardado rechazado por el backend:', data.error);
                 }
             } catch (error) {
-                alert("Error de conexión.");
+                alert("Error de conexión: " + error.message);
+                console.error('[DedicaTape] Error de red/JS al guardar:', error);
             }
             btn.innerText = "Grabar Mixtape";
             btn.disabled = false;
