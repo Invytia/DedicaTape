@@ -187,10 +187,19 @@
         </div>
     </div>
 
+    <!-- Se muestra si alguien abre un enlace cuyo pago todavía no ha sido confirmado -->
+    <div id="linkPendingScreen" class="hidden fixed inset-0 z-[150] bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-6 text-center">
+        <div class="max-w-sm">
+            <div class="text-6xl mb-4">⏳</div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-neutral-900 mb-2">Este DedicaTape todavía no está listo</h2>
+            <p class="text-neutral-600">Su pago está en proceso de confirmación. En cuanto esté aprobado, este mismo enlace mostrará el mixtape automáticamente.</p>
+        </div>
+    </div>
+
     <div id="mainContainer" class="max-w-6xl w-full bg-white/40 backdrop-blur-md border border-white/50 sm:rounded-3xl shadow-2xl flex flex-col lg:flex-row-reverse min-h-[700px] relative transition-all duration-500 opacity-0 pb-24 lg:pb-0">
         
         <!-- PANEL DERECHO: CASETE -->
-        <div id="cassettePanel" class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center lg:sticky lg:top-0 z-30 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000">
+        <div id="cassettePanel" class="w-full lg:w-1/2 py-6 px-4 sm:p-8 flex flex-col items-center justify-center lg:sticky lg:top-0 z-30 bg-white/50 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none border-b border-white/50 lg:border-none sm:rounded-t-3xl lg:rounded-tr-3xl lg:rounded-br-3xl lg:rounded-tl-none self-start shadow-sm lg:shadow-none transition-all perspective-1000 relative">
             <div id="caseAssembly" class="case-open w-full max-w-[450px] flex flex-col items-center">
 
                 <div id="cassetteAssembly" class="z-10 text-center w-full">
@@ -285,6 +294,37 @@
                             <div class="font-extrabold text-white text-base drop-shadow">Dedica<span class="text-rose-300">Tape</span></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- OVERLAY DE PAGO: aparece sobre el casete (con blur de fondo) al terminar de configurar -->
+            <div id="paymentOverlay" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center max-h-[90%] overflow-y-auto">
+                    <h3 class="text-xl font-extrabold text-neutral-900 mb-1">💳 Un último paso</h3>
+                    <p class="text-sm text-neutral-600 mb-3">Para activar tu DedicaTape, realiza tu pago:</p>
+                    <p class="text-3xl font-extrabold text-neutral-900 mb-4">$79 MXN</p>
+                    <div class="bg-neutral-50 border border-neutral-200 rounded-xl p-4 text-left text-sm space-y-2 mb-4">
+                        <p>🏦 <strong>Banco:</strong> Nu</p>
+                        <p>👤 <strong>Nombre:</strong> Sergio Rodríguez</p>
+                        <div class="flex items-center justify-between gap-2">
+                            <p>🔢 <strong>CLABE:</strong> <span id="clabeText" class="font-mono">638180010192418691</span></p>
+                            <button type="button" onclick="copyClabe()" class="text-xs bg-black text-white px-2.5 py-1.5 rounded-md hover:bg-neutral-800 whitespace-nowrap flex-shrink-0">Copiar</button>
+                        </div>
+                    </div>
+                    <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1 text-left">Sube tu comprobante (foto o PDF)</label>
+                    <input type="file" id="comprobanteInput" accept="image/*,application/pdf" class="w-full text-xs border border-neutral-300 rounded-xl p-2 mb-3 bg-white">
+                    <button type="button" id="submitComprobanteBtn" onclick="submitComprobante()" class="w-full bg-black text-white font-extrabold py-3 rounded-xl hover:bg-neutral-800 transition">Ya pagué, enviar comprobante</button>
+                    <p class="text-[11px] text-neutral-400 mt-3">Verificamos cada pago manualmente. Te confirmamos por WhatsApp en cuanto esté listo tu DedicaTape.</p>
+                </div>
+            </div>
+
+            <!-- OVERLAY: comprobante recibido, en espera de verificación manual -->
+            <div id="pendingOverlay" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center">
+                    <div class="text-4xl mb-2">📤</div>
+                    <h3 class="text-xl font-extrabold text-neutral-900 mb-2">¡Comprobante recibido!</h3>
+                    <p class="text-sm text-neutral-600">Estamos verificando tu pago. En cuanto lo confirmemos, te mandamos tu DedicaTape listo por WhatsApp 💌</p>
+                    <p class="text-xs text-neutral-400 mt-4">Esto normalmente toma un par de horas.</p>
                 </div>
             </div>
         </div>
@@ -545,6 +585,8 @@
         let monitorTimer = null;
         const CROSSFADE_SECONDS = 4;
 
+        let currentMixtapeId = null; // id del mixtape recién guardado, para adjuntar el comprobante de pago
+
         const webhookUrl = 'https://script.google.com/macros/s/AKfycbzEuISqdSPvb53kM_DZykcWRKVBX7qA4BM6y4lwgosuMZ6IUdhgzB5M86EhlHFdvB23/exec';
 
         window.onload = async function() {
@@ -646,8 +688,13 @@
                         requestAnimationFrame(() => gr.classList.remove('opacity-0'));
 
                     } else {
-                        alert("Este mixtape no existe o fue borrado.");
-                        window.location.href = window.location.pathname; 
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                        if (res.error === 'pendiente') {
+                            showPaymentPendingMessage();
+                        } else {
+                            alert("Este mixtape no existe o fue borrado.");
+                            window.location.href = window.location.pathname;
+                        }
                         return;
                     }
                 } catch (error) {
@@ -656,6 +703,10 @@
                     return;
                 }
         };
+
+        function showPaymentPendingMessage() {
+            document.getElementById('linkPendingScreen').classList.remove('hidden');
+        }
 
         function openGift() {
             const gr = document.getElementById('giftReveal');
@@ -1372,28 +1423,15 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    const currentUrl = window.location.href.split('?')[0]; 
-                    const shareUrl = `${currentUrl}?m=${data.id}`;
-                    document.getElementById('linkOutput').value = shareUrl;
-
-                    const waText = encodeURIComponent(`Te hice un mixtape en DedicaTape 📼🎧 ${shareUrl}`);
-                    document.getElementById('whatsappShareBtn').href = `https://wa.me/?text=${waText}`;
-                    
+                    currentMixtapeId = data.id;
                     document.getElementById('formZone').classList.add('hidden');
-                    document.getElementById('successZone').classList.remove('hidden');
-                    document.getElementById('playerContainerGlobal').classList.remove('hidden');
-                    
+
                     decorationEditable = false;
                     renderDecorations();
-
-                    initYouTubePlayer(songs);
-                    if(isFlipped) flipCassette();
-
-                    // Se queda viendo el casete tal cual lo verá el destinatario, junto con el enlace para compartir.
                     setCaseState('open');
-                    document.getElementById('caseStatusCaption').innerText = '👀 Así lo verá quien lo reciba';
-                    document.getElementById('caseStatusCaption').classList.remove('hidden');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    // En vez de entregar el casete terminado de una, se pide el pago primero.
+                    showPaymentOverlay();
                 } else {
                     // Se muestra el motivo real que devuelve el backend (ej. "foto demasiado pesada"),
                     // en vez de un mensaje genérico que no ayuda a diagnosticar.
@@ -1406,6 +1444,87 @@
             }
             btn.innerText = "Grabar Mixtape";
             btn.disabled = false;
+        }
+
+        // =====================================================
+        // PAGO: overlay con blur + datos de transferencia + subida de comprobante
+        // =====================================================
+        function showPaymentOverlay() {
+            document.getElementById('caseAssembly').classList.add('blur-md', 'brightness-90', 'pointer-events-none');
+            document.getElementById('paymentOverlay').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function showPendingScreen() {
+            document.getElementById('paymentOverlay').classList.add('hidden');
+            document.getElementById('pendingOverlay').classList.remove('hidden');
+        }
+
+        function copyClabe() {
+            const clabe = document.getElementById('clabeText').innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(clabe).then(() => showToast('📋 CLABE copiada'))
+                    .catch(() => copyClabeFallback(clabe));
+            } else {
+                copyClabeFallback(clabe);
+            }
+        }
+        function copyClabeFallback(clabe) {
+            const temp = document.createElement('textarea');
+            temp.value = clabe;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            try { document.execCommand('copy'); showToast('📋 CLABE copiada'); } catch (e) {}
+            document.body.removeChild(temp);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitComprobante() {
+            const fileInput = document.getElementById('comprobanteInput');
+            const file = fileInput.files[0];
+            if (!file) return alert('Sube tu comprobante de pago (foto o PDF).');
+
+            const MAX_RAW_BYTES = 4 * 1024 * 1024; // 4MB: de sobra para una captura o un PDF de comprobante
+            if (file.size > MAX_RAW_BYTES) return alert('El archivo es muy pesado. Sube uno de menos de 4MB.');
+            if (!currentMixtapeId) return alert('Ocurrió un error: no se encontró tu mixtape. Recarga la página e inténtalo de nuevo.');
+
+            const btn = document.getElementById('submitComprobanteBtn');
+            btn.disabled = true;
+            btn.innerText = 'Enviando...';
+
+            try {
+                const archivo = await fileToBase64(file);
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'comprobante',
+                        id: currentMixtapeId,
+                        archivo: archivo,
+                        nombreArchivo: file.name,
+                        tipo: file.type
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showPendingScreen();
+                } else {
+                    alert(data.error ? `No se pudo enviar: ${data.error}` : 'No se pudo enviar el comprobante.');
+                }
+            } catch (error) {
+                alert('Error de conexión: ' + error.message);
+            }
+            btn.disabled = false;
+            btn.innerText = 'Ya pagué, enviar comprobante';
         }
 
         function copyLink() {
