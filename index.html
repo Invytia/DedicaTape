@@ -21,9 +21,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Courier+Prime:wght@400;700&family=Inter:wght@400;700&family=Outfit:wght@300;400;600;800&family=Permanent+Marker&family=VT323&display=swap" rel="stylesheet">
     
     <style>
+        html {
+            /* Desactiva el "pull-to-refresh" del navegador (deslizar hacia abajo recarga la página).
+               Esto es una propiedad distinta a touch-action: sin esto, cualquier arrastre hacia abajo
+               puede disparar una recarga completa y borrar el progreso, sin importar qué tan bien
+               esté resuelto el arrastre de las decoraciones. */
+            overscroll-behavior-y: none;
+        }
         body {
             font-family: 'Outfit', sans-serif;
             background-color: #e5e7eb;
+            overscroll-behavior-y: none;
         }
 
         .spin { animation: spin 4s linear infinite; }
@@ -960,7 +968,20 @@
 
                 if (decorationEditable) {
                     el.addEventListener('pointerdown', startDrag);
-                    el.addEventListener('dblclick', () => removeDecoration(d.id));
+
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.innerText = '✕';
+                    delBtn.setAttribute('aria-label', 'Quitar');
+                    delBtn.className = 'absolute w-6 h-6 bg-red-500 text-white rounded-full text-[11px] leading-none flex items-center justify-center shadow z-10';
+                    delBtn.style.top = '2px';
+                    delBtn.style.right = '2px';
+                    delBtn.style.pointerEvents = 'auto';
+                    delBtn.style.touchAction = 'manipulation';
+                    // Evita que tocar la "✕" también dispare el arrastre del elemento padre.
+                    delBtn.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+                    delBtn.addEventListener('click', (ev) => { ev.stopPropagation(); removeDecoration(d.id); });
+                    el.appendChild(delBtn);
                 }
                 layer.appendChild(el);
             });
