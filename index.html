@@ -104,18 +104,21 @@
 
         .palette-btn { width: 56px; height: 30px; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); }
 
-        /* Decoraciones: se arrastran directo con el dedo. touch-action:none es lo que evita que el
-           navegador interprete el gesto como scroll de la página en vez de mover el elemento. */
-        .decoration-item, .decoration-item * {
-            touch-action: none;
-            -webkit-user-select: none; user-select: none;
-        }
+        /* Decoraciones: se colocan con toques (tocar para seleccionar, tocar dónde va),
+           no con arrastre continuo — así nunca compite con el gesto de scroll de la página. */
         .decoration-item {
+            -webkit-user-select: none; user-select: none;
             padding: 10px;
             margin: -10px;
-            cursor: grab;
+            cursor: pointer;
         }
-        .decoration-item.dragging { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)); cursor: grabbing; }
+        .decoration-item.selected {
+            outline: 3px solid #f43f5e;
+            outline-offset: 2px;
+            border-radius: 10px;
+            animation: pulseSelect 1s ease-in-out infinite;
+        }
+        @keyframes pulseSelect { 0%, 100% { outline-color: #f43f5e; } 50% { outline-color: #fda4af; } }
 
         /* Toast de confirmación */
         #appToast {
@@ -125,10 +128,6 @@
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         #appToast.show { opacity: 1; }
-
-        /* Se activa en <body> SOLO mientras el dedo está arrastrando una decoración,
-           para que ese gesto puntual no se confunda con un scroll de la página. */
-        body.drag-lock { overflow: hidden; overscroll-behavior: none; touch-action: none; }
 
         /* --- Caja del casete: elemento separado (no encimado), debajo del casete --- */
         @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
@@ -508,7 +507,7 @@
 
                 <div class="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
                     <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">4. Decora tu casete</h3>
-                    <p class="text-xs text-neutral-500">Toca para agregar sobre el casete, luego deslízalo con el dedo para acomodarlo. Doble toque para quitarlo.</p>
+                    <p class="text-xs text-neutral-500">Toca para agregar. Se selecciona sola (resplandece en rojo) — toca el casete donde quieras ponerla. Toca la ✕ para quitarla.</p>
                     <div>
                         <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Washi tape</p>
                         <div class="flex gap-2 flex-wrap">
@@ -603,6 +602,7 @@
 
         window.onload = async function() {
             setupVoiceNoteAudioEvents();
+            initDecorationPlacement();
 
             const urlParams = new URLSearchParams(window.location.search);
             const mixtapeId = urlParams.get('m');
@@ -922,39 +922,46 @@
         });
 
         // =====================================================
-        // DECORACIONES: stickers y washi tape — arrastre directo con el dedo
+        // DECORACIONES: stickers y washi tape — tocar para seleccionar, tocar dónde va
+        // (sin arrastre continuo: así nunca compite con el gesto de scroll de la página)
         // =====================================================
+        let selectedDecorationId = null;
+
         function addDecoration(type, variant) {
             if (decorations.length >= 12) return alert('Ya agregaste suficientes decoraciones 🙂');
+            const id = 'd' + Date.now() + Math.floor(Math.random() * 1000);
             decorations.push({
-                id: 'd' + Date.now() + Math.floor(Math.random() * 1000),
-                type, variant,
+                id, type, variant,
                 x: 42 + Math.random() * 16,
                 y: 42 + Math.random() * 16,
                 rot: Math.floor(Math.random() * 30 - 15)
             });
+            selectedDecorationId = id; // queda lista de inmediato para tocar dónde ponerla
             renderDecorations();
-            showToast(type === 'tape' ? '✨ Washi tape agregado' : '✨ Sticker agregado');
+            showToast('👆 Ahora toca el casete donde quieras ponerla');
             const cassette = document.getElementById('caseAssembly');
             if (cassette) cassette.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function removeDecoration(id) {
             decorations = decorations.filter(d => d.id !== id);
+            if (selectedDecorationId === id) selectedDecorationId = null;
             renderDecorations();
         }
 
         function renderDecorations() {
             const layer = document.getElementById('decorationLayer');
+            layer.style.pointerEvents = decorationEditable ? 'auto' : 'none';
             layer.innerHTML = '';
             decorations.forEach(d => {
                 const el = document.createElement('div');
-                el.className = 'decoration-item absolute select-none';
+                const isSelected = decorationEditable && d.id === selectedDecorationId;
+                el.className = 'decoration-item absolute select-none' + (isSelected ? ' selected' : '');
                 el.style.left = d.x + '%';
                 el.style.top = d.y + '%';
                 el.style.transform = `translate(-50%, -50%) rotate(${d.rot}deg)`;
                 el.style.pointerEvents = decorationEditable ? 'auto' : 'none';
-                el.style.zIndex = '38';
+                el.style.zIndex = isSelected ? '39' : '38';
                 el.dataset.id = d.id;
 
                 const content = document.createElement('div');
@@ -967,7 +974,12 @@
                 el.appendChild(content);
 
                 if (decorationEditable) {
-                    el.addEventListener('pointerdown', startDrag);
+                    // Tocar la decoración la selecciona (o la deselecciona si ya estaba seleccionada).
+                    el.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        selectedDecorationId = (selectedDecorationId === d.id) ? null : d.id;
+                        renderDecorations();
+                    });
 
                     const delBtn = document.createElement('button');
                     delBtn.type = 'button';
@@ -976,10 +988,6 @@
                     delBtn.className = 'absolute w-6 h-6 bg-red-500 text-white rounded-full text-[11px] leading-none flex items-center justify-center shadow z-10';
                     delBtn.style.top = '2px';
                     delBtn.style.right = '2px';
-                    delBtn.style.pointerEvents = 'auto';
-                    delBtn.style.touchAction = 'manipulation';
-                    // Evita que tocar la "✕" también dispare el arrastre del elemento padre.
-                    delBtn.addEventListener('pointerdown', (ev) => ev.stopPropagation());
                     delBtn.addEventListener('click', (ev) => { ev.stopPropagation(); removeDecoration(d.id); });
                     el.appendChild(delBtn);
                 }
@@ -987,47 +995,23 @@
             });
         }
 
-        // Arrastre directo: toca y desliza de inmediato (sin mantener presionado).
-        // touch-action:none en el elemento + preventDefault + pointer capture es lo que
-        // evita que el navegador confunda el gesto con un scroll de la página.
-        let dragState = null;
-        function startDrag(e) {
-            e.preventDefault();
-            const el = e.currentTarget;
-            const id = el.dataset.id;
-            const rectParent = document.getElementById('decorationLayer').getBoundingClientRect();
-            dragState = { id, rectParent, el };
-            el.classList.add('dragging');
-            el.style.zIndex = '60';
-            document.body.classList.add('drag-lock'); // bloquea el scroll SOLO mientras se arrastra
-            try { el.setPointerCapture(e.pointerId); } catch (err) {}
-            el.addEventListener('pointermove', onDrag, { passive: false });
-            el.addEventListener('pointerup', endDrag);
-            el.addEventListener('pointercancel', endDrag);
-        }
-        function onDrag(e) {
-            if (!dragState) return;
-            e.preventDefault();
-            const { rectParent, id, el } = dragState;
-            let x = ((e.clientX - rectParent.left) / rectParent.width) * 100;
-            let y = ((e.clientY - rectParent.top) / rectParent.height) * 100;
-            x = Math.max(2, Math.min(98, x));
-            y = Math.max(2, Math.min(98, y));
-            const d = decorations.find(dd => dd.id === id);
-            if (d) { d.x = x; d.y = y; }
-            el.style.left = x + '%';
-            el.style.top = y + '%';
-        }
-        function endDrag(e) {
-            if (!dragState) return;
-            const { el } = dragState;
-            el.classList.remove('dragging');
-            el.removeEventListener('pointermove', onDrag);
-            el.removeEventListener('pointerup', endDrag);
-            el.removeEventListener('pointercancel', endDrag);
-            document.body.classList.remove('drag-lock');
-            dragState = null;
-            renderDecorations(); // reconstruye limpio una sola vez, al soltar
+        // Tocar el casete (fuera de una decoración) mueve ahí la decoración seleccionada.
+        // Es un solo "click" — nunca hay un touchmove que interceptar, por eso no puede
+        // competir con el scroll/pull-to-refresh de la página como sí pasaba con el arrastre.
+        function initDecorationPlacement() {
+            const layer = document.getElementById('decorationLayer');
+            layer.addEventListener('click', (e) => {
+                if (!selectedDecorationId) return;
+                const rect = layer.getBoundingClientRect();
+                let x = ((e.clientX - rect.left) / rect.width) * 100;
+                let y = ((e.clientY - rect.top) / rect.height) * 100;
+                x = Math.max(4, Math.min(96, x));
+                y = Math.max(4, Math.min(96, y));
+                const d = decorations.find(dd => dd.id === selectedDecorationId);
+                if (d) { d.x = x; d.y = y; }
+                selectedDecorationId = null;
+                renderDecorations();
+            });
         }
 
         // Toast de confirmación (agregar sticker/washi, etc.)
