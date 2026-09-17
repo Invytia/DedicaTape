@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DedicaTape — Crea tu Mixtape</title>
 
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '935723615792836');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=935723615792836&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
     <!-- Open Graph / preview social. og:image es estático porque generar una miniatura
          distinta por cada mixtape requiere un servicio de renderizado server-side
          (ver nota en el chat). Las etiquetas se actualizan por JS al abrir un mixtape. -->
@@ -1562,6 +1580,8 @@
             document.getElementById('caseAssembly').classList.add('blur-md', 'brightness-90', 'pointer-events-none');
             document.getElementById('paymentOverlay').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Llegó en serio hasta el paso de pago (terminó de configurar su mixtape).
+            if (typeof fbq === 'function') fbq('track', 'InitiateCheckout', { value: 79, currency: 'MXN' });
         }
         function showPendingScreen() {
             document.getElementById('paymentOverlay').classList.add('hidden');
@@ -1570,6 +1590,10 @@
             const titulo = document.getElementById('titulo').value || 'mi mixtape';
             const waText = encodeURIComponent(`Hola, ya mandé mi comprobante de pago de DedicaTape "${titulo}". ID: ${currentMixtapeId}`);
             document.getElementById('notifyAdvisorBtn').href = `https://wa.me/525577108077?text=${waText}`;
+
+            // Señal fuerte de intención de compra: subió su comprobante. No usamos "Purchase" aquí
+            // porque el pago todavía no está verificado por un humano — eso pasa después, fuera del sitio.
+            if (typeof fbq === 'function') fbq('track', 'Lead', { value: 79, currency: 'MXN' });
         }
 
         function copyClabe() {
