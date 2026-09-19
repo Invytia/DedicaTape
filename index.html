@@ -561,6 +561,15 @@
                     </div>
                 </div>
 
+                <div class="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white/80 shadow-sm">
+                    <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">5. Tu WhatsApp</h3>
+                    <p class="text-xs text-neutral-500">Por si necesitamos contactarte sobre tu pedido (ej. dudas con tu pago o tu cinta).</p>
+                    <div>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Número de WhatsApp (opcional)</label>
+                        <input type="tel" id="whatsappNumero" placeholder="Ej. 55 1234 5678" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition" maxlength="20" inputmode="tel">
+                    </div>
+                </div>
+
                 <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
                     Grabar Mixtape
                 </button>
@@ -584,8 +593,8 @@
             <p class="text-xs text-neutral-400 mb-6">DedicaTape · Última actualización: 2026</p>
             <div class="space-y-4 text-sm leading-relaxed text-neutral-700">
                 <p><strong>1. Qué es DedicaTape.</strong> DedicaTape es una herramienta para crear y compartir "casetes" digitales personalizados (canciones de YouTube, una nota de texto, una nota de voz, una foto y decoraciones) mediante un enlace único.</p>
-                <p><strong>2. Qué información recopilamos.</strong> Cuando creas un mixtape, guardamos: el título, la nota de texto, tu nombre (si lo indicas), los enlaces/títulos de las canciones elegidas, la foto que subas para la carcasa, y la nota de voz que grabes. Esta información se almacena para poder mostrarla a quien abra tu enlace.</p>
-                <p><strong>3. Cómo se usa esta información.</strong> Solo se usa para generar y mostrar el mixtape a través del enlace que tú compartes. No vendemos ni compartimos este contenido con terceros con fines publicitarios.</p>
+                <p><strong>2. Qué información recopilamos.</strong> Cuando creas un mixtape, guardamos: el título, la nota de texto, tu nombre (si lo indicas), tu número de WhatsApp (si lo indicas), los enlaces/títulos de las canciones elegidas, la foto que subas para la carcasa, y la nota de voz que grabes. Esta información se almacena para poder mostrarla a quien abra tu enlace y, en el caso del WhatsApp, para poder contactarte sobre tu pedido si es necesario.</p>
+                <p><strong>3. Cómo se usa esta información.</strong> Solo se usa para generar y mostrar el mixtape a través del enlace que tú compartes, y para darte seguimiento sobre tu pedido cuando nos dejas tu WhatsApp. No vendemos ni compartimos este contenido con terceros con fines publicitarios.</p>
                 <p><strong>4. Contenido de terceros.</strong> Al agregar canciones, DedicaTape reproduce contenido de YouTube dentro de la página, sujeto a los <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" class="underline">Términos de Servicio de YouTube</a> y a la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="underline">Política de Privacidad de Google</a>.</p>
                 <p><strong>5. Responsabilidad sobre el contenido.</strong> Tú eres responsable del contenido que subes (fotos, notas, audio). Está prohibido subir contenido ilegal, difamatorio, que viole derechos de terceros, o que sea ofensivo/abusivo. Nos reservamos el derecho de eliminar cualquier mixtape que incumpla esto.</p>
                 <p><strong>6. Enlaces y acceso.</strong> Cualquier persona que tenga el enlace de un mixtape puede verlo. No compartas enlaces de mixtapes con contenido sensible en lugares públicos.</p>
@@ -1545,11 +1554,13 @@
 
             try {
                 const de = document.getElementById('deNombre').value;
+                const whatsapp = document.getElementById('whatsappNumero').value.trim();
                 const payload = {
                     action: 'save',
                     titulo: titulo,
                     mensaje: mensaje,
                     de: de,
+                    whatsapp: whatsapp,
                     color: currentColor,
                     canciones: songs,
                     estilos: { font: document.getElementById('fontSelect').value, label: document.getElementById('labelSelect').value },
