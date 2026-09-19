@@ -790,6 +790,15 @@
                 }
         };
 
+        // Evita contar el mismo Purchase varias veces si el usuario recarga la pantalla
+        // de "pago confirmado" o vuelve a abrir el enlace ?pago=ok&m=ID.
+        function hasFiredPurchase(mixtapeId) {
+            try { return localStorage.getItem('dt_purchase_' + mixtapeId) === '1'; } catch (e) { return false; }
+        }
+        function markPurchaseFired(mixtapeId) {
+            try { localStorage.setItem('dt_purchase_' + mixtapeId, '1'); } catch (e) {}
+        }
+
         function showPaymentPendingMessage() {
             document.getElementById('linkPendingScreen').classList.remove('hidden');
         }
@@ -1675,7 +1684,11 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // Ahora sí es un Purchase real: Mercado Pago ya confirmó el pago.
-            if (typeof fbq === 'function') fbq('track', 'Purchase', { value: 79, currency: 'MXN' });
+            // Se dispara solo una vez por mixtape, aunque el usuario recargue esta pantalla.
+            if (typeof fbq === 'function' && !hasFiredPurchase(mixtapeId)) {
+                fbq('track', 'Purchase', { value: 79, currency: 'MXN' });
+                markPurchaseFired(mixtapeId);
+            }
         }
 
         function showPaymentStillPending(mixtapeId) {
