@@ -332,14 +332,32 @@
                     <div class="mb-1">
                         <span class="inline-block bg-rose-100 text-rose-600 text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-full">🚀 Precio de lanzamiento</span>
                     </div>
-                    <p class="mb-5">
+                    <p class="mb-3">
                         <span class="text-neutral-400 line-through text-lg mr-2">$129</span>
                         <span class="text-3xl font-extrabold text-neutral-900">$79 MXN</span>
                     </p>
+                    <p class="text-[11px] text-emerald-700 font-bold mb-3">⚡ Con tarjeta se activa al instante — con OXXO puede tardar hasta 2 días</p>
                     <button type="button" id="payWithMPBtn" onclick="payWithMercadoPago()" class="w-full flex items-center justify-center gap-2 bg-[#009ee3] text-white font-extrabold py-3.5 rounded-xl hover:brightness-95 transition shadow-md">
                         Pagar con Mercado Pago
                     </button>
                     <p class="text-[11px] text-neutral-400 mt-3">Tarjeta, transferencia u OXXO — eliges cómo pagar dentro de Mercado Pago. Tu DedicaTape se activa automáticamente en cuanto se confirme.</p>
+                    <p class="text-[11px] text-neutral-500 mt-2 flex items-start justify-center gap-1.5 text-left max-w-[280px] mx-auto">
+                        <span class="flex-shrink-0">🔐</span>
+                        <span>Tu pago es <strong>100% seguro</strong>: se procesa directo en los servidores de Mercado Pago con cifrado. Nosotros nunca vemos ni guardamos los datos de tu tarjeta.</span>
+                    </p>
+
+                    <div class="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-neutral-100">
+                        <div class="flex flex-col items-center gap-0.5 text-[10px] text-neutral-500 font-semibold w-16">
+                            <span class="text-base">🔒</span><span>100% seguro</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-0.5 text-[10px] text-neutral-500 font-semibold w-16">
+                            <span class="text-base">↩️</span><span>Garantía de reembolso</span>
+                        </div>
+                        <a href="https://wa.me/525577108077?text=Hola%2C%20tengo%20una%20duda%20sobre%20mi%20DedicaTape" target="_blank" rel="noopener" class="flex flex-col items-center gap-0.5 text-[10px] text-neutral-500 font-semibold w-16 hover:text-green-700">
+                            <span class="text-base">💬</span><span>Soporte por WhatsApp</span>
+                        </a>
+                    </div>
+                    <button type="button" onclick="openLegalModal()" class="block w-full text-center text-[11px] text-neutral-400 underline mt-2 hover:text-neutral-600">Ver política de reembolsos</button>
                 </div>
             </div>
 
@@ -360,8 +378,28 @@
         <!-- PANEL IZQUIERDO: CONFIGURADOR / VISTA -->
         <div id="creatorPanel" class="w-full lg:w-1/2 p-6 md:p-10 bg-white/60 lg:border-r border-white/40 sm:rounded-b-3xl lg:rounded-bl-3xl lg:rounded-tl-3xl lg:rounded-br-none transition-all">
             <h1 id="mainHeading" class="text-4xl sm:text-5xl font-extrabold text-neutral-900 mb-2 tracking-tight mt-2 lg:mt-0">Tu Mixtape</h1>
-            <p id="mainSubheading" class="text-neutral-600 mb-8 font-medium">Diseña el casete y añade hasta 4 canciones de YouTube.</p>
+            <p id="mainSubheading" class="text-neutral-600 mb-3 font-medium">Diseña el casete y añade hasta 4 canciones de YouTube.</p>
+            <div class="flex flex-wrap items-center gap-2 mb-8">
+                <div id="priceBadge" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1.5 rounded-full">
+                    <span>💰</span><span>Actívalo por $79 MXN</span>
+                </div>
+                <!-- Número editable a mano: sube este conteo cuando quieras reflejar más mixtapes creados -->
+                <div id="socialProofBadge" class="inline-flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-extrabold px-3 py-1.5 rounded-full">
+                    <span>🎧</span><span>Más de 50 mixtapes creados</span>
+                </div>
+            </div>
+            <a id="contactWhatsappLink" href="https://wa.me/525577108077?text=Hola%2C%20tengo%20una%20duda%20sobre%20mi%20DedicaTape" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-xs text-green-700 font-bold hover:text-green-800 underline mb-8">
+                <span>💬</span><span>¿Dudas? Contáctanos por WhatsApp</span>
+            </a>
             
+            <div id="resumePendingBanner" class="hidden mb-6 bg-amber-50/90 backdrop-blur border border-amber-200 rounded-2xl p-6 text-center shadow-lg">
+                <div class="text-3xl mb-2">📼</div>
+                <h3 class="text-amber-900 font-bold mb-1">Tienes un DedicaTape sin activar</h3>
+                <p class="text-sm text-amber-800 mb-4">"<span id="resumePendingTitle">tu mixtape</span>" está listo, solo falta completar el pago.</p>
+                <button type="button" onclick="resumePendingPayment()" class="w-full bg-black text-white font-extrabold py-3 rounded-xl shadow-md hover:-translate-y-0.5 transition-all mb-2">Continuar con el pago · $79 MXN</button>
+                <button type="button" onclick="discardPendingAndStartNew()" class="text-xs text-amber-700 underline hover:text-amber-900">Empezar uno nuevo en su lugar</button>
+            </div>
+
             <div id="successZone" class="hidden bg-green-50/90 backdrop-blur border border-green-200 rounded-xl p-6 text-center shadow-lg mb-6">
                 <h3 class="text-green-800 font-bold mb-2 text-xl">¡Cinta grabada con éxito! 📼</h3>
                 <p class="text-sm text-green-700 mb-4">Envía este enlace a esa persona especial:</p>
@@ -412,7 +450,7 @@
                     </div>
                     
                     <div class="flex-grow text-left overflow-hidden">
-                        <p class="text-[9px] sm:text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5 sm:mb-1">REPRODUCTOR DE AUDIO</p>
+                        <p id="playerContextLabel" class="text-[9px] sm:text-[10px] text-neutral-400 font-bold tracking-widest mb-0.5 sm:mb-1">REPRODUCTOR DE AUDIO</p>
                         <p id="currentTrackLabel" class="text-white font-medium truncate text-sm sm:text-base">Cargando cinta...</p>
                     </div>
                     
@@ -565,13 +603,16 @@
                     <h3 class="font-bold text-neutral-900 border-b border-neutral-200/60 pb-2">5. Tu WhatsApp</h3>
                     <p class="text-xs text-neutral-500">Por si necesitamos contactarte sobre tu pedido (ej. dudas con tu pago o tu cinta).</p>
                     <div>
-                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Número de WhatsApp (opcional)</label>
+                        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Número de WhatsApp</label>
                         <input type="tel" id="whatsappNumero" placeholder="Ej. 55 1234 5678" class="w-full border border-neutral-300/80 rounded-xl p-3 outline-none focus:ring-2 focus:ring-black bg-white/90 transition" maxlength="20" inputmode="tel">
                     </div>
                 </div>
 
+                <p class="text-center text-[11px] text-neutral-500 mb-2 flex items-center justify-center gap-1">
+                    <span>🔐</span><span>Pago 100% seguro con Mercado Pago</span>
+                </p>
                 <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
-                    Grabar Mixtape
+                    Grabar Mixtape · $79 MXN
                 </button>
                 <p class="text-center text-[11px] text-neutral-400 mt-3">
                     Al continuar, aceptas nuestros <button type="button" onclick="openLegalModal()" class="underline hover:text-neutral-700">Términos y Aviso de Privacidad</button>.
@@ -593,14 +634,15 @@
             <p class="text-xs text-neutral-400 mb-6">DedicaTape · Última actualización: 2026</p>
             <div class="space-y-4 text-sm leading-relaxed text-neutral-700">
                 <p><strong>1. Qué es DedicaTape.</strong> DedicaTape es una herramienta para crear y compartir "casetes" digitales personalizados (canciones de YouTube, una nota de texto, una nota de voz, una foto y decoraciones) mediante un enlace único.</p>
-                <p><strong>2. Qué información recopilamos.</strong> Cuando creas un mixtape, guardamos: el título, la nota de texto, tu nombre (si lo indicas), tu número de WhatsApp (si lo indicas), los enlaces/títulos de las canciones elegidas, la foto que subas para la carcasa, y la nota de voz que grabes. Esta información se almacena para poder mostrarla a quien abra tu enlace y, en el caso del WhatsApp, para poder contactarte sobre tu pedido si es necesario.</p>
+                <p><strong>2. Qué información recopilamos.</strong> Cuando creas un mixtape, guardamos: el título, la nota de texto, tu nombre (si lo indicas), tu número de WhatsApp, los enlaces/títulos de las canciones elegidas, la foto que subas para la carcasa, y la nota de voz que grabes. Esta información se almacena para poder mostrarla a quien abra tu enlace y, en el caso del WhatsApp, para poder contactarte sobre tu pedido si es necesario.</p>
                 <p><strong>3. Cómo se usa esta información.</strong> Solo se usa para generar y mostrar el mixtape a través del enlace que tú compartes, y para darte seguimiento sobre tu pedido cuando nos dejas tu WhatsApp. No vendemos ni compartimos este contenido con terceros con fines publicitarios.</p>
                 <p><strong>4. Contenido de terceros.</strong> Al agregar canciones, DedicaTape reproduce contenido de YouTube dentro de la página, sujeto a los <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" class="underline">Términos de Servicio de YouTube</a> y a la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="underline">Política de Privacidad de Google</a>.</p>
                 <p><strong>5. Responsabilidad sobre el contenido.</strong> Tú eres responsable del contenido que subes (fotos, notas, audio). Está prohibido subir contenido ilegal, difamatorio, que viole derechos de terceros, o que sea ofensivo/abusivo. Nos reservamos el derecho de eliminar cualquier mixtape que incumpla esto.</p>
                 <p><strong>6. Enlaces y acceso.</strong> Cualquier persona que tenga el enlace de un mixtape puede verlo. No compartas enlaces de mixtapes con contenido sensible en lugares públicos.</p>
                 <p><strong>7. Eliminación de datos.</strong> Puedes solicitar la eliminación de un mixtape y su contenido escribiendo a <a href="mailto:invytiamx@gmail.com" class="font-semibold underline">invytiamx@gmail.com</a>.</p>
-                <p><strong>8. Menores de edad.</strong> DedicaTape no está dirigido a menores de 13 años. Si eres menor de edad, usa este servicio con supervisión de un adulto.</p>
-                <p><strong>9. Cambios.</strong> Este aviso puede actualizarse; los cambios importantes se reflejarán en esta misma pantalla.</p>
+                <p><strong>8. Política de reembolsos.</strong> Si tu pago fue aprobado por Mercado Pago pero tu DedicaTape no se activó correctamente por un error técnico de nuestro sistema, tienes derecho a un reembolso completo — escríbenos a <a href="mailto:invytiamx@gmail.com" class="font-semibold underline">invytiamx@gmail.com</a> o por WhatsApp dentro de las 48 horas siguientes a tu compra, indicando tu enlace o ID de mixtape. Como DedicaTape es contenido digital personalizado que se genera y entrega de inmediato tras confirmarse el pago, no se realizan reembolsos por cambio de opinión una vez que el mixtape fue entregado exitosamente, salvo que la legislación aplicable indique lo contrario.</p>
+                <p><strong>9. Menores de edad.</strong> DedicaTape no está dirigido a menores de 13 años. Si eres menor de edad, usa este servicio con supervisión de un adulto.</p>
+                <p><strong>10. Cambios.</strong> Este aviso puede actualizarse; los cambios importantes se reflejarán en esta misma pantalla.</p>
                 <p class="text-xs text-neutral-400 pt-2 border-t border-neutral-200">Este texto es una plantilla general y no constituye asesoría legal. Antes de operar DedicaTape de forma comercial, se recomienda que un abogado la revise y adapte a la legislación aplicable (en México, entre otras, la LFPDPPP).</p>
             </div>
         </div>
@@ -678,6 +720,13 @@
             if (!mixtapeId) {
                 // Flujo de creación: se revela el formulario de una vez (el onboarding ya está visible encima).
                 document.getElementById('mainContainer').classList.remove('opacity-0');
+                const pending = getPendingMixtapeLocal();
+                if (pending) {
+                    // Ya armó un mixtape antes y no completó el pago: se salta el onboarding
+                    // (no tiene caso volver a preguntarle el mood) y se le ofrece retomarlo.
+                    closeOnboarding(true);
+                    showResumeBanner(pending);
+                }
                 return;
             }
 
@@ -755,6 +804,8 @@
                         songs = data.canciones;
                         renderSongsOnlyBack(); 
                         
+                        const playerLabelReceiver = document.getElementById('playerContextLabel');
+                        if (playerLabelReceiver) playerLabelReceiver.innerText = 'REPRODUCTOR DE AUDIO';
                         document.getElementById('playerContainerGlobal').classList.remove('hidden');
                         initYouTubePlayer(songs);
 
@@ -768,6 +819,10 @@
                             : 'Alguien te preparó un mixtape';
                         document.getElementById('giftTitlePreview').innerText = `"${data.titulo}"`;
                         document.getElementById('makeYourOwnWrap').classList.remove('hidden');
+                        const priceBadgeEl = document.getElementById('priceBadge');
+                        if (priceBadgeEl) priceBadgeEl.classList.add('hidden');
+                        const socialProofBadgeEl = document.getElementById('socialProofBadge');
+                        if (socialProofBadgeEl) socialProofBadgeEl.classList.add('hidden');
                         document.getElementById('loadingScreen').classList.add('hidden');
                         const gr = document.getElementById('giftReveal');
                         gr.classList.remove('hidden');
@@ -792,6 +847,53 @@
 
         // Evita contar el mismo Purchase varias veces si el usuario recarga la pantalla
         // de "pago confirmado" o vuelve a abrir el enlace ?pago=ok&m=ID.
+        // =====================================================
+        // RETOMAR PAGO PENDIENTE (localStorage, sin backend extra)
+        // =====================================================
+        const PENDING_KEY = 'dt_pending_mixtape';
+        const PENDING_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 días, luego se ignora/descarta solo
+
+        function savePendingMixtapeLocal(id, titulo) {
+            try { localStorage.setItem(PENDING_KEY, JSON.stringify({ id, titulo, ts: Date.now() })); } catch (e) {}
+        }
+        function getPendingMixtapeLocal() {
+            try {
+                const raw = localStorage.getItem(PENDING_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || !parsed.id || !parsed.ts) return null;
+                if (Date.now() - parsed.ts > PENDING_MAX_AGE_MS) { localStorage.removeItem(PENDING_KEY); return null; }
+                return parsed;
+            } catch (e) { return null; }
+        }
+        function clearPendingMixtapeLocal() {
+            try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+        }
+        function showResumeBanner(pending) {
+            const banner = document.getElementById('resumePendingBanner');
+            if (!banner) return;
+            document.getElementById('resumePendingTitle').innerText = pending.titulo || 'tu mixtape';
+            banner.classList.remove('hidden');
+        }
+        // Va directo a pedir el pago con el id guardado — no reconstruye el diseño visual del
+        // casete (eso requeriría poder leer datos de un mixtape aún no aprobado desde el backend),
+        // pero sí lleva a la persona derechito al botón de Mercado Pago sin rehacer nada.
+        function resumePendingPayment() {
+            const pending = getPendingMixtapeLocal();
+            if (!pending) return;
+            currentMixtapeId = pending.id;
+            document.getElementById('resumePendingBanner').classList.add('hidden');
+            document.getElementById('formZone').classList.add('hidden');
+            decorationEditable = false;
+            renderDecorations();
+            setCaseState('open');
+            showPaymentOverlay();
+        }
+        function discardPendingAndStartNew() {
+            clearPendingMixtapeLocal();
+            document.getElementById('resumePendingBanner').classList.add('hidden');
+        }
+
         function hasFiredPurchase(mixtapeId) {
             try { return localStorage.getItem('dt_purchase_' + mixtapeId) === '1'; } catch (e) { return false; }
         }
@@ -983,6 +1085,23 @@
                 list.appendChild(li);
             });
             renderSongsOnlyBack();
+            updateCreatorPreviewPlayer();
+        }
+
+        // Deja que quien está armando su mixtape lo escuche completo (con el mismo crossfade
+        // que ve el receptor) antes de pagar — la confianza de "sí suena bien" ayuda a que
+        // se animen a completar la compra en vez de dudar en el último paso.
+        function updateCreatorPreviewPlayer() {
+            const container = document.getElementById('playerContainerGlobal');
+            const label = document.getElementById('playerContextLabel');
+            if (songs.length === 0) {
+                container.classList.add('hidden');
+                teardownPlayers();
+                return;
+            }
+            if (label) label.innerText = '🎧 ASÍ SONARÁ TU MIXTAPE';
+            container.classList.remove('hidden');
+            initYouTubePlayer(songs);
         }
 
         function renderSongsOnlyBack() {
@@ -1551,6 +1670,8 @@
 
             if (!titulo) return alert("Ponle un título a tu mixtape.");
             if (songs.length === 0) return alert("Agrega al menos una canción.");
+            const whatsappCheck = document.getElementById('whatsappNumero').value.trim();
+            if (!whatsappCheck) return alert("Agrega tu número de WhatsApp para poder continuar.");
             if (caseSheetPhoto && caseSheetPhoto.length > MAX_ASSET_CHARS) {
                 return alert("La foto de la carcasa quedó muy pesada. Quítala y sube una más chica.");
             }
@@ -1589,6 +1710,7 @@
                 
                 if (data.success) {
                     currentMixtapeId = data.id;
+                    savePendingMixtapeLocal(data.id, titulo);
                     document.getElementById('formZone').classList.add('hidden');
 
                     decorationEditable = false;
@@ -1607,7 +1729,7 @@
                 alert("Error de conexión: " + error.message);
                 console.error('[DedicaTape] Error de red/JS al guardar:', error);
             }
-            btn.innerText = "Grabar Mixtape";
+            btn.innerText = "Grabar Mixtape · $79 MXN";
             btn.disabled = false;
         }
 
@@ -1618,6 +1740,8 @@
             document.getElementById('caseAssembly').classList.add('blur-md', 'brightness-90', 'pointer-events-none');
             document.getElementById('paymentOverlay').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Pausa la vista previa: si quieren seguir escuchando su mixtape completo, los motiva a activarlo.
+            try { if (isPlaying && players[activeIndex]) players[activeIndex].pauseVideo(); } catch (e) {}
             // Llegó en serio hasta el paso de pago (terminó de configurar su mixtape).
             if (typeof fbq === 'function') fbq('track', 'InitiateCheckout', { value: 79, currency: 'MXN' });
         }
@@ -1674,6 +1798,7 @@
         function showPaymentConfirmed(mixtapeId) {
             document.getElementById('paymentStatusOverlay').classList.add('hidden');
             document.getElementById('caseAssembly').classList.remove('blur-md', 'brightness-90', 'pointer-events-none');
+            clearPendingMixtapeLocal(); // ya se pagó, no hay nada que retomar
 
             const currentUrl = window.location.href.split('?')[0];
             const shareUrl = `${currentUrl}?m=${mixtapeId}`;
