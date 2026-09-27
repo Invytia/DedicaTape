@@ -608,11 +608,8 @@
                     </div>
                 </div>
 
-                <p class="text-center text-[11px] text-neutral-500 mb-2 flex items-center justify-center gap-1">
-                    <span>🔐</span><span>Pago 100% seguro con Mercado Pago</span>
-                </p>
                 <button id="submitBtn" onclick="generarMixtape()" class="w-full bg-black text-white font-extrabold text-lg py-4 rounded-xl shadow-[0_4px_14px_0_rgb(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-1 transition-all">
-                    Grabar Mixtape · $79 MXN
+                    Grabar Mixtape
                 </button>
                 <p class="text-center text-[11px] text-neutral-400 mt-3">
                     Al continuar, aceptas nuestros <button type="button" onclick="openLegalModal()" class="underline hover:text-neutral-700">Términos y Aviso de Privacidad</button>.
@@ -1729,7 +1726,7 @@
                 alert("Error de conexión: " + error.message);
                 console.error('[DedicaTape] Error de red/JS al guardar:', error);
             }
-            btn.innerText = "Grabar Mixtape · $79 MXN";
+            btn.innerText = "Grabar Mixtape";
             btn.disabled = false;
         }
 
