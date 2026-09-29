@@ -252,7 +252,7 @@
                             <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/40 pointer-events-none z-40 mix-blend-overlay rounded-xl"></div>
                             <div class="screw top-3 left-3"></div><div class="screw top-3 right-3"></div><div class="screw bottom-3 left-3"></div><div class="screw bottom-3 right-3"></div>
 
-                            <div id="cassetteLabel" class="absolute top-6 w-[88%] h-[53%] label-solid border border-neutral-400/80 rounded shadow-sm flex flex-col items-center justify-start p-2 sm:p-3 z-20 transition-all duration-300">
+                            <div id="cassetteLabel" class="absolute top-6 w-[88%] h-[53%] label-striped border border-neutral-400/80 rounded shadow-sm flex flex-col items-center justify-start p-2 sm:p-3 z-20 transition-all duration-300">
                                 <div class="w-full border-b-2 border-red-500 pb-1 mb-1 flex justify-between items-center px-1">
                                     <span class="text-[9px] sm:text-[11px] font-bold text-neutral-600 tracking-wider">60 MIN</span>
                                     <span id="labelPreview" class="font-handwriting text-neutral-900 text-xl sm:text-2xl leading-tight text-center flex-grow truncate px-2 transition-all">Mixtape</span>
@@ -532,7 +532,7 @@
                             <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Estilo Etiqueta</label>
                             <select id="labelSelect" onchange="updateStyle()" class="w-full p-3 border border-neutral-300 rounded-xl bg-white/90 outline-none font-medium cursor-pointer">
                                 <option value="label-solid">Liso</option>
-                                <option value="label-striped">Rayado Vintage</option>
+                                <option value="label-striped" selected>Rayado Vintage</option>
                                 <option value="label-grid">Cuadrícula Retro</option>
                                 <option value="label-sunset">Degradado Ocaso</option>
                                 <option value="label-transparent">Cristal (Glass)</option>
@@ -1511,6 +1511,16 @@
         function createPlayer(slot, songIndex) {
             if (songIndex >= songs.length) return;
             const vid = songs[songIndex].id;
+            // El iframe de YouTube reemplaza el <div> original al crear un player, así que
+            // reusar el mismo slot más adelante (2ª vuelta del crossfade, o un "siguiente" manual)
+            // fallaba en silencio: el <div> con ese id ya no existía. Aquí se destruye el player
+            // anterior de este slot (si había) y se recrea el <div> antes de instanciar uno nuevo.
+            if (players[slot]) {
+                try { players[slot].destroy(); } catch (e) {}
+                players[slot] = null;
+            }
+            const slotContainer = document.getElementById('ytSlot' + slot);
+            if (slotContainer) slotContainer.innerHTML = '<div id="ytPlayerHidden' + slot + '"></div>';
             players[slot] = new YT.Player('ytPlayerHidden' + slot, {
                 height: '100%',
                 width: '100%',
